@@ -1,0 +1,26 @@
+# CMake build directories
+/build*/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+
+# Qt-generated
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Editor-specific
+*.autosave
+*.user
+*.pro.user
+
+# Binary output
+*.exe
+*.dll
+*.so
+*.app
+
+# OS-specific
+.DS_Store
+Thumbs.db
