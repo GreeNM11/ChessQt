@@ -1,10 +1,7 @@
-
 #include <QApplication>
 #include <utility>
 #include <vector>
 #include <QPixmap>
-#include <QLabel>
-#include "ui_mainwindow.h"
 #include <QMap>
 
 class Piece {
@@ -12,100 +9,106 @@ class Piece {
         enum Color {white, black};
         enum piece_type {wK, wQ, wB, wN, wR, wP, bK, bQ, bB, bN, bR, bP};
 
-        Piece(bool w, int col, int row, QLabel* pieceLabel) : col(col), row(row), pieceLabel(pieceLabel){
+        Piece(bool w){
             color = w ? white : black;
         }
         virtual ~Piece() {}
-
-        void move_piece(int c, int r, int tileSize){
-            col = c;
-            row = r;
-            pieceLabel->move(col * tileSize, row * tileSize);
-
-        }
-
-        virtual void calculate_moveset(){}
+        virtual std::vector<std::pair<int,int>>get_moveset(int row, int col){return moveset;}
+        void has_moved(){ hasMoved = true; }
 
         Color getColor() const { return color; }
 
     protected:
         Color color;
         piece_type type;
-        int col;
-        int row;
-        QLabel* pieceLabel;
-        std::vector<std::pair<int,int>> move_list;
+        std::vector<std::pair<int,int>>moveset;
+        bool hasMoved = false;
 };
 
 class King : public Piece {
     public:
-        King(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        King(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wK) : piece_type(bK);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_moveset(int row, int col){
+
+            return moveset;
         }
 };
 
 class Queen : public Piece {
     public:
-        Queen(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        Queen(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wQ) : piece_type(bQ);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_moveset(int row, int col){
+
+            return moveset;
         }
 };
 
 class Rook : public Piece {
     public:
-        Rook(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        Rook(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wR) : piece_type(bR);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_movesetet(){
+
+            return moveset;
         }
 };
 
 class Bishop : public Piece {
     public:
-        Bishop(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        Bishop(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wB) : piece_type(bB);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_moveset(int row, int col){
+
+
+            return moveset;
         }
 };
 
 class Knight : public Piece {
     public:
-        Knight(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        Knight(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wN) : piece_type(bN);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_moveset(int row, int col){
+
+
+            return moveset;
         }
 };
 
 class Pawn : public Piece {
     public:
-        Pawn(bool w, int col, int row, QLabel *pieceLabel) : Piece(color, col, row, pieceLabel) {
-            color = w ? white : black;
+        Pawn(bool w) : Piece(w) {
             type = (color == white) ? piece_type(wP) : piece_type(bP);
         }
 
-        void calculate_moveset(){
-            move_list.clear();
+        std::vector<std::pair<int,int>>get_moveset(int row, int col){
+            moveset.clear();
+            if (color == white){
+                moveset.push_back(std::make_pair(row - 1, col));
+                if (!hasMoved){
+                    moveset.push_back(std::make_pair(row - 2, col));
+                }
+            }
+            else{
+                moveset.push_back(std::make_pair(row + 1, col));
+                if (!hasMoved){
+                    moveset.push_back(std::make_pair(row + 2, col));
+                }
+            }
+
+            return moveset;
         }
 };
 
