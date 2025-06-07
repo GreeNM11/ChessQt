@@ -15,10 +15,12 @@ void PieceLabel::mousePressEvent(QMouseEvent* event) {
 }
 
 void PieceLabel::deselect() {
-    if (selected) {
-        setStyleSheet("");
-        selected = false;
-    }
+    setStyleSheet("");
+    selected = false;
+}
+
+void PieceLabel::set_capturable(){
+    setStyleSheet("background-color: rgba(100, 0, 0, 200);");
 }
 
 bool PieceLabel::move_piece(int r, int c, int tileSize){

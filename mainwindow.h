@@ -29,6 +29,7 @@ private:
     Ui::MainWindow* ui;
 
     ClickableTileLabel* Tiles[8][8];
+    QString board[8][8]; // chess board with only string names
     PieceLabel* piece_label_board[8][8]; // chess board but for piece objects
     PieceLabel* s_label = nullptr; // keeps track of which piece is selected
     std::vector<std::pair<int,int>> s_move_list = {};
