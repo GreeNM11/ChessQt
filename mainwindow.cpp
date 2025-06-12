@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
-Piece* make_piece(QString pieceCode){
+Piece* MainWindow::make_piece(QString pieceCode){
+
     bool w = true;
     if (pieceCode.at(0) == "b"){
         w = false;
@@ -28,6 +29,62 @@ Piece* make_piece(QString pieceCode){
     }
 
     return p;
+}
+PieceLabel* MainWindow::make_piece_label(int row, int col, QString pieceCode, int tileSize, QMap<QString, QPixmap> pieceImages){
+    Piece* piece_object = make_piece(pieceCode);
+    PieceLabel* p_label = new PieceLabel(ui->labelBoard, piece_object, row, col);
+
+    p_label->setPixmap(pieceImages[pieceCode]);
+    p_label->setScaledContents(true);
+    p_label->setFixedSize(tileSize, tileSize);
+    p_label->show();
+    p_label->move_piece(row, col, tileSize);
+    piece_label_board[row][col] = p_label;
+
+    // Connects piece behavior when clicked on //
+
+    connect(piece_label_board[row][col], &PieceLabel::clicked, this, [=](PieceLabel* clicked_label){
+        bool same = (clicked_label == s_label);
+
+        if (s_label == nullptr){
+            // if null, set selected piece and moveset //
+            s_label = clicked_label;
+            s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
+            for (const auto& move : s_move_list) {Tiles[move.first][move.second]->select();}
+        }
+        else if (!same && s_label->get_color() == clicked_label->get_color()){
+            // deselected old piece and selected new piece and moveset //
+            s_label->deselect();
+            for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
+            s_label = clicked_label;
+
+            s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
+            for (const auto& move : s_move_list) {Tiles[move.first][move.second]->select();}
+        }
+        else{
+            bool capture_piece = false;
+            int r;
+            int c;
+            for (const auto& move : s_move_list) {
+                // checks if selected piece is to capture //
+                if (clicked_label == piece_label_board[move.first][move.second]){
+                    capture_piece = true; break;
+                }
+            }
+            if (capture_piece){
+                // captures piece and moves it //
+                for (const auto& move : s_move_list) {
+                    Tiles[move.first][move.second]->deselect();
+                }
+                delete clicked_label;
+            }
+        }
+    });
+    return p_label;
+}
+
+void move_piece(){
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -111,46 +168,12 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-
-
     for (int col = 0; col < 8; ++col) {
         // Creates the 32 pieces objects at starting positions //
         for (int row = 0; row < 8; ++row) {
             QString pieceCode = board[row][col];
             if (pieceCode != ""){
-
-                Piece* piece_object = make_piece(pieceCode); // piece object inside label object
-                PieceLabel* p_label = new PieceLabel(ui->labelBoard, piece_object, row, col);
-
-                p_label->setPixmap(pieceImages[pieceCode]);
-                p_label->setScaledContents(true);
-                p_label->setFixedSize(tileSize, tileSize);
-                p_label->show();
-                p_label->move_piece(row, col, tileSize);
-                piece_label_board[row][col] = p_label;
-
-                // Connects piece behavior when clicked on //
-
-                connect(piece_label_board[row][col], &PieceLabel::clicked, this, [=](PieceLabel* clicked_label){
-                    bool same = (clicked_label == s_label);
-
-                    if (s_label == nullptr){ // if null, set selected piece
-                        s_label = clicked_label;
-                    }
-                    else if (!same) { // if clicked on another piece
-                        s_label->deselect();
-                        for (const auto& move : s_move_list) {
-                            Tiles[move.first][move.second]->deselect();
-                        }
-                        s_label = clicked_label;
-                    }
-                    if (s_label != nullptr && !same){ // get the moveset of the selected piece
-                        s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
-                        for (const auto& move : s_move_list) {
-                            Tiles[move.first][move.second]->select();
-                        }
-                    }
-                });
+                make_piece_label(row, col, pieceCode, tileSize, pieceImages);
             }
         }
     }

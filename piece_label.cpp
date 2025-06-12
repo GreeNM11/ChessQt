@@ -5,6 +5,10 @@ PieceLabel::PieceLabel(QWidget* parent, Piece* p_object, int col, int row)
     setStyleSheet("");
 }
 
+PieceLabel::~PieceLabel(){
+    delete p_object;
+}
+
 void PieceLabel::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(this);
@@ -42,3 +46,10 @@ Piece* PieceLabel::get_object(){
 
 int PieceLabel::get_row(){return row;}
 int PieceLabel::get_col(){return col;}
+
+bool PieceLabel::get_color(){return p_object->getColor();}
+
+
+
+
+

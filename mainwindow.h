@@ -33,5 +33,8 @@ private:
     PieceLabel* piece_label_board[8][8]; // chess board but for piece objects
     PieceLabel* s_label = nullptr; // keeps track of which piece is selected
     std::vector<std::pair<int,int>> s_move_list = {};
+
+    Piece* make_piece(QString pieceCode);
+    PieceLabel* make_piece_label(int row, int col, QString pieceCode, int tileSize, QMap<QString, QPixmap> pieceImages);
 };
 #endif // MAINWINDOW_H

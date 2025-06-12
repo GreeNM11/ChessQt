@@ -6,17 +6,16 @@
 
 class Piece {
     public:
-        enum Color {white, black};
+
         enum piece_type {wK, wQ, wB, wN, wR, wP, bK, bQ, bB, bN, bR, bP};
 
         Piece(bool w){
-            color = w ? white : black;
+            isWhite = w;
             opposite = w ? 'b' : 'w';
         }
         virtual ~Piece() {}
         virtual std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){return moveset;}
         void has_moved(){ hasMoved = true; }
-
 
         void moves_line(int p_row, int p_col, int r_mult, int c_mult, QString board[8][8]){
 
@@ -42,10 +41,10 @@ class Piece {
             }
         }
 
-        Color getColor() const { return color; }
+        bool getColor() const { return isWhite; }
 
     protected:
-        Color color;
+        bool isWhite;
         QChar opposite;
         piece_type type;
         std::vector<std::pair<int,int>>moveset;
@@ -55,7 +54,7 @@ class Piece {
 class King : public Piece {
     public:
         King(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wK) : piece_type(bK);
+            type = isWhite ? piece_type(wK) : piece_type(bK);
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
@@ -67,11 +66,12 @@ class King : public Piece {
 class Queen : public Piece {
     public:
         Queen(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wQ) : piece_type(bQ);
+            type = isWhite ? piece_type(wQ) : piece_type(bQ);
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
             moveset.clear();
+            // combines both bishop and rook moves //
             moves_line(row, col,  1, 0, board);
             moves_line(row, col, -1, 0, board);
             moves_line(row, col, 0,  1, board);
@@ -89,11 +89,12 @@ class Queen : public Piece {
 class Rook : public Piece {
     public:
         Rook(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wR) : piece_type(bR);
+            type = isWhite ? piece_type(wR) : piece_type(bR);
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
             moveset.clear();
+            // 2 horizontal and 2 vertical lines //
             moves_line(row, col,  1, 0, board);
             moves_line(row, col, -1, 0, board);
             moves_line(row, col, 0,  1, board);
@@ -105,11 +106,12 @@ class Rook : public Piece {
 class Bishop : public Piece {
     public:
         Bishop(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wB) : piece_type(bB);
+            type = isWhite ? piece_type(wB) : piece_type(bB);
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
             moveset.clear();
+            // 4 diagonals for bishop //
             moves_line(row, col,  1,  1, board);
             moves_line(row, col,  1, -1, board);
             moves_line(row, col, -1,  1, board);
@@ -121,24 +123,47 @@ class Bishop : public Piece {
 class Knight : public Piece {
     public:
         Knight(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wN) : piece_type(bN);
+            type = isWhite ? piece_type(wN) : piece_type(bN);
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
-
+            moveset.clear();
+            // all 8 possible moves for knights //
+            knight_move(row, col, 2, 1, board);
+            knight_move(row, col, 2, -1, board);
+            knight_move(row, col, 1, 2, board);
+            knight_move(row, col, 1, -2, board);
+            knight_move(row, col, -1, 2, board);
+            knight_move(row, col, -1, -2, board);
+            knight_move(row, col, -2, 1, board);
+            knight_move(row, col, -2, -1, board);
             return moveset;
         }
+
+    private:
+        void knight_move(int row, int col, int vertical, int horizontal, QString board[8][8]){
+            int move_row = row - vertical;
+            int move_col = col - horizontal;
+            if (move_row < 8 && move_row >= 0 && move_col < 8 && move_col >= 0){
+                if (board[move_row][move_col] == ""){
+                    moveset.push_back(std::make_pair(move_row, move_col));
+                }
+                else if (board[move_row][move_col].at(0) == opposite){
+                    moveset.push_back(std::make_pair(move_row, move_col));
+                }
+            }
+        }
+
 };
 
 class Pawn : public Piece {
     public:
         Pawn(bool w) : Piece(w) {
-            type = (color == white) ? piece_type(wP) : piece_type(bP);
+            type = isWhite ? piece_type(wP) : piece_type(bP);
         }
-
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
             moveset.clear();
-            if (color == white){
+            if (isWhite){
                 if (board[row-1][col] == ""){
                     moveset.push_back(std::make_pair(row - 1, col));
                     if (!hasMoved && board[row-2][col] == ""){
