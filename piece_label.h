@@ -11,6 +11,8 @@ class PieceLabel : public QLabel {
 public:
     explicit PieceLabel(QWidget* parent = nullptr, Piece* p_object = nullptr, int row = 0, int col = 0);
     ~PieceLabel();
+
+    void select();
     void deselect();
     void set_capturable();
     bool move_piece(int row, int col, int tileSize);

@@ -12,10 +12,12 @@ PieceLabel::~PieceLabel(){
 void PieceLabel::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(this);
-        selected = true;
-        setStyleSheet("background-color: rgba(100, 100, 100, 200);");
     }
-    //QLabel::mousePressEvent(event);
+
+}
+void PieceLabel::select(){
+    selected = true;
+    setStyleSheet("background-color: rgba(100, 100, 100, 200);");
 }
 
 void PieceLabel::deselect() {

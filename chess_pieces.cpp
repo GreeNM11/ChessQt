@@ -58,7 +58,6 @@ class King : public Piece {
         }
 
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
-
             return moveset;
         }
 };
@@ -145,10 +144,7 @@ class Knight : public Piece {
             int move_row = row - vertical;
             int move_col = col - horizontal;
             if (move_row < 8 && move_row >= 0 && move_col < 8 && move_col >= 0){
-                if (board[move_row][move_col] == ""){
-                    moveset.push_back(std::make_pair(move_row, move_col));
-                }
-                else if (board[move_row][move_col].at(0) == opposite){
+                if (board[move_row][move_col] == "" || board[move_row][move_col].at(0) == opposite){
                     moveset.push_back(std::make_pair(move_row, move_col));
                 }
             }
@@ -163,23 +159,24 @@ class Pawn : public Piece {
         }
         std::vector<std::pair<int,int>>get_moveset(int row, int col, QString board[8][8]){
             moveset.clear();
-            if (isWhite){
-                if (board[row-1][col] == ""){
-                    moveset.push_back(std::make_pair(row - 1, col));
-                    if (!hasMoved && board[row-2][col] == ""){
-                        moveset.push_back(std::make_pair(row - 2, col));
-                    }
-                }
-            }
-            else{
-                if (board[row+1][col] == ""){
-                    moveset.push_back(std::make_pair(row + 1, col));
-                    if (!hasMoved && board[row+2][col] == ""){
-                        moveset.push_back(std::make_pair(row + 2, col));
-                    }
-                }
-            }
+            int direction = 1;
+            if (isWhite){direction = -1;}
+            int up_one = row+direction;
 
+            if (board[up_one][col] == ""){
+                moveset.push_back(std::make_pair(up_one, col));
+                if (!hasMoved && board[up_one + direction][col] == ""){
+                    moveset.push_back(std::make_pair(up_one + direction, col));
+                }
+            }
+            /*
+            if (board[up_one][col+direction].at(0) == opposite){
+                moveset.push_back(std::make_pair(up_one, col+direction));
+            }
+            if (board[up_one][col+direction].at(0) == opposite){
+                moveset.push_back(std::make_pair(up_one, col-direction));
+            }
+            */
             return moveset;
         }
 };
