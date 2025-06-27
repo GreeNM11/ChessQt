@@ -17,6 +17,15 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        chess_pieces.cpp
+	chess_pieces.h
+        piece_label.cpp
+        piece_label.h
+        chess_game.cpp
+        chess_game.h
+        clickable_tile_label.h
+        clickable_tile_label.cpp
+
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -25,6 +34,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         resources.qrc
         .gitignore
+        piece_label.h piece_label.cpp
+        clickable_tile_label.h clickable_tile_label.cpp
+        chess_game.h chess_game.cpp
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ChessQt APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

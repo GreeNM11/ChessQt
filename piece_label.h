@@ -3,7 +3,7 @@
 
 #include <QLabel>
 #include <QMouseEvent>
-#include "chess_pieces.cpp"
+#include "chess_pieces.h"
 
 class PieceLabel : public QLabel {
     Q_OBJECT
