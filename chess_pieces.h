@@ -12,7 +12,8 @@ public:
     Piece(bool w);
     virtual ~Piece();
 
-    bool getColor() const;
+    bool get_color() const;
+    bool get_piece_type() const;
     void has_moved();
     virtual std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8]);
 
@@ -77,6 +78,9 @@ public:
     Pawn(bool w);
     ~Pawn();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8]);
+    bool just_moved(bool stop); // stop is true if en passant isnt available anymore //
+private:
+    bool pawn_just_moved = false;
 };
 
 #endif // CHESS_PIECES_H

@@ -34,11 +34,23 @@ private:
         { "wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP" },
         { "wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR" }
     };
+
     ClickableTileLabel* Tiles[8][8]; // board for Tile[row][col] //
     PieceLabel* piece_label_board[8][8]; // label_board[row][col] //
 
     PieceLabel* s_label = nullptr; // keeps track of selected piece
     std::vector<std::pair<int,int>> s_move_list = {}; // vector of selected piece's available moves
+
+    bool white_turn = true;
+    PieceLabel* last_piece_moved;
+
+    PieceLabel* white_king_label;
+    PieceLabel* black_king_label;
+    King* white_king;
+    King* black_king;
+
+    bool in_check;
+    bool check_mate;
 
     // Board Functions //
     Piece* make_piece(QString pieceCode);
@@ -46,10 +58,14 @@ private:
 
     void deselect_all();
     void select_piece(PieceLabel* clicked_label);
+    void switch_turn();
 
     void move_piece(PieceLabel* p, int new_row, int new_col);
     void click_piece_action(PieceLabel* clicked_label);
     void click_tile_action(ClickableTileLabel* tile);
+
+    bool check_if_in_check();
+    bool check_if_checkmate();
 
     void setup_board();
 };

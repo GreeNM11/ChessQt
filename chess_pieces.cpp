@@ -8,7 +8,7 @@ Piece::Piece(bool w){
     opposite = w ? 'b' : 'w';
 }
 Piece::~Piece(){}
-bool Piece::getColor() const { return isWhite; }
+bool Piece::get_color() const { return isWhite; }
 void Piece::has_moved(){ hasMoved = true; }
 std::vector<std::pair<int,int>>Piece::get_moveset(int row, int col, const QString board[8][8]){return moveset;}
 
@@ -200,26 +200,32 @@ Pawn::Pawn(bool w) : Piece(w) {
     type = isWhite ? piece_type(wP) : piece_type(bP);
 }
 Pawn::~Pawn(){}
+bool Pawn::just_moved(bool stop){
+    if (stop){pawn_just_moved = false;}
+    return pawn_just_moved;
+}
+
 std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString board[8][8]){
     moveset.clear();
     int direction = 1;
     if (isWhite){direction = -1;}
     int up_one = row+direction;
-    qDebug() << "test";
-    if (board[up_one][col] == ""){
+
+    if (board[up_one][col] == ""){ // forward moves //
         moveset.push_back(std::make_pair(up_one, col));
         if (!hasMoved && board[up_one + direction][col] == ""){
             moveset.push_back(std::make_pair(up_one + direction, col));
+            pawn_just_moved = true; // for en passant
         }
     }
-    /*
-    if (board[up_one][col+direction].at(0) == opposite){
-        moveset.push_back(std::make_pair(up_one, col+direction));
+    // capturing moves //
+    if (col+1 < 8 && board[up_one][col+1].at(0) == opposite){
+        moveset.push_back(std::make_pair(up_one, col+1));
     }
-    if (board[up_one][col+direction].at(0) == opposite){
-        moveset.push_back(std::make_pair(up_one, col-direction));
+    if (col-1 > 0 && board[up_one][col-1].at(0) == opposite){
+        moveset.push_back(std::make_pair(up_one, col-1));
     }
-    */
+
     return moveset;
 }
 // --------------------------------------------------------------------------------------------------------- //

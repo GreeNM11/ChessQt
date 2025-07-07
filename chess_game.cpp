@@ -46,6 +46,10 @@ PieceLabel* chess_game::make_piece_label(int row, int col, QString pieceCode, in
     connect(piece_label_board[row][col], &PieceLabel::clicked, this, [=](PieceLabel* clicked_label){
         click_piece_action(clicked_label);
     });
+
+    if (pieceCode == "wK"){white_king = p_label;}
+    else if (pieceCode == "bK") {black_king = p_label;}
+
     return p_label;
 }
 
@@ -68,6 +72,11 @@ void chess_game::select_piece(PieceLabel* clicked_label){
     }
 }
 
+void chess_game::switch_turn(){
+    white_turn = !white_turn;
+    in_check = check_if_in_check();
+}
+
 void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
     int p_col = s_label->get_col();
     int p_row = s_label->get_row();
@@ -85,16 +94,19 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
     int clicked_row = clicked_label->get_row();
     int clicked_col = clicked_label->get_col();
 
-    if (s_label == nullptr){
-        // if no piece selected, set selected piece and get moveset //
-        select_piece(clicked_label);
+    if (clicked_label->get_color() == white_turn){ // clicked on piece and is players turn //
+        if (s_label == nullptr){
+            // if no piece selected, set selected piece and get moveset //
+            select_piece(clicked_label);
+        }
+        else if (!same){
+            // deselected old piece and selected new piece and get new moveset //
+            deselect_all();
+            select_piece(clicked_label);
+        }
     }
-    else if (!same && s_label->get_color() == clicked_label->get_color()){
-        // if same color piece already selected, deselected old piece and selected new piece and get new moveset //
-        deselect_all();
-        select_piece(clicked_label);
-    }
-    else{ // else is capturing another piece //
+
+    if (clicked_label->get_color() != white_turn){ // clicked on enemy piece //
         bool capture_piece = false;
         int r; int c;
         for (const auto& move : s_move_list) {
@@ -103,6 +115,7 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
                 delete clicked_label;
                 move_piece(s_label, clicked_row, clicked_col);
                 deselect_all();
+                switch_turn();
                 break;
             }
         }
@@ -112,8 +125,9 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
 void chess_game::click_tile_action(ClickableTileLabel* tile){
     if (s_label != nullptr){
         for (const auto& move : s_move_list) {
-            if (tile == Tiles[move.first][move.second]){
+            if (tile == Tiles[move.first][move.second]){ // clicked on tile is in moveset //
                 move_piece(s_label, move.first, move.second);
+                switch_turn();
             }
             Tiles[move.first][move.second]->deselect();
         }
@@ -121,6 +135,16 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
         s_label = nullptr;
     }
 }
+
+bool chess_game::check_if_in_check(){
+    if (white_turn){
+        return white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
+    }
+    else{
+        return black_king->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
+    }
+}
+
 
 void chess_game::setup_board(){
     // Load the board image from resources and set it on labelBoard
