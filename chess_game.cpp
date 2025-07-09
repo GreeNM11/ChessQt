@@ -11,6 +11,8 @@ Piece* chess_game::make_piece(QString pieceCode){
 
     if (pieceCode.at(1) == "K"){
         p = new King(w);
+        if (pieceCode.at(0) == "w"){white_king = dynamic_cast<King*>(p);}
+        else if (pieceCode.at(0) == "b") {black_king = dynamic_cast<King*>(p);}
     }
     else if (pieceCode.at(1) == "Q"){
         p = new Queen(w);
@@ -47,8 +49,8 @@ PieceLabel* chess_game::make_piece_label(int row, int col, QString pieceCode, in
         click_piece_action(clicked_label);
     });
 
-    if (pieceCode == "wK"){white_king = p_label;}
-    else if (pieceCode == "bK") {black_king = p_label;}
+    if (pieceCode == "wK"){white_king_label = p_label;}
+    else if (pieceCode == "bK") {black_king_label = p_label;}
 
     return p_label;
 }
@@ -57,7 +59,13 @@ void chess_game::deselect_all(){
     if (s_label != nullptr){
         s_label->deselect();
     }
-    for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
+    if (!in_check){
+        for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
+    }
+    else{
+        for (const auto& move : block_move_list) {Tiles[move.first][move.second]->deselect();}
+    }
+
     s_move_list.clear();
     s_label = nullptr;
 }
@@ -68,19 +76,34 @@ void chess_game::select_piece(PieceLabel* clicked_label){
         s_label = clicked_label;
         s_label->select();
         s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
+        if (in_check){
+            std::vector<std::pair<int, int>> result;
+            for (const auto& pair : block_move_list) {
+                if (std::find(s_move_list.begin(), s_move_list.end(), pair) != s_move_list.end()) {
+                    result.push_back(pair);
+                }
+            }
+            s_move_list = result;
+        }
         for (const auto& move : s_move_list) {Tiles[move.first][move.second]->select();}
     }
 }
 
 void chess_game::switch_turn(){
+    white_king_label->deselect();
+    black_king_label->deselect();
+
     white_turn = !white_turn;
     in_check = check_if_in_check();
+    if (white_turn && in_check){white_king_label->check_king();}
+    else if (!white_turn && in_check){black_king_label->check_king();}
+
 }
 
 void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
     int p_col = s_label->get_col();
     int p_row = s_label->get_row();
-    // updates the label, piece board, and string board //
+    // updates the label, label board, and string board //
     s_label->move_piece(new_row, new_col, tileSize);
     s_label->get_object()->has_moved();
     piece_label_board[new_row][new_col] = piece_label_board[p_row][p_col];
@@ -138,13 +161,24 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
 
 bool chess_game::check_if_in_check(){
     if (white_turn){
-        return white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
+        block_move_list = white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
     }
     else{
-        return black_king->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
+        block_move_list = black_king->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
     }
+    if (!block_move_list.empty()){
+        if (block_move_list.at(0).first == -1){ // double check case
+            block_move_list.clear();
+            return true;
+        }
+        else if(block_move_list.at(0).first == -2){ // invalid case, not check
+            block_move_list.clear();
+            return false;
+        }
+        else{ return true; } // 1 check
+    }
+    return false;
 }
-
 
 void chess_game::setup_board(){
     // Load the board image from resources and set it on labelBoard

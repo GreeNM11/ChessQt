@@ -37,11 +37,11 @@ class King : public Piece {
 public:
     King(bool w);
     ~King();
-    std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8]);
+    std::vector<std::pair<int,int>> get_moveset(int row, int col, const QString board[8][8]);
 
-    bool is_in_check(int row, int col, const QString board[8][8]);
+    std::vector<std::pair<int,int>> is_in_check(int row, int col, const QString board[8][8]);
 private:
-    bool check_if_valid(int row, int col, const QString board[8][8]);
+    std::vector<std::pair<int,int>> check_if_valid(int row, int col, const QString board[8][8]);
     void add_valid_move(int row, int col, const QString board[8][8], std::vector<std::pair<int,int>> &m);
 };
 

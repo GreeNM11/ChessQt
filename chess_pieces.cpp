@@ -65,42 +65,59 @@ std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString
     return moveset;
 }
 
-bool King::is_in_check(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>> King::is_in_check(int row, int col, const QString board[8][8]){
     return check_if_valid(row,col,board);
 }
 void King::add_valid_move(int row, int col, const QString board[8][8], std::vector<std::pair<int,int>> &m){
-    if (check_if_valid(row,col,board)){
+    if (check_if_valid(row,col,board).empty()){
         m.push_back(std::make_pair(row, col));
     }
 }
 
-bool King::check_if_valid(int row, int col, const QString board[8][8]){
-    if (row >= 8 || row < 0 || col >= 8 || col < 0 || board[row][col].at(0) == same){
-        return false; // cant move outside board or same color piece
+std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QString board[8][8]){
+    if (row >= 8 || row < 0 || col >= 8 || col < 0 || (board[row][col] != nullptr && board[row][col].at(0) == same && board[row][col] != same + 'K')){
+        return {{-2,-2}};  // cant move outside board or same color piece
     }
     std::vector<std::pair<int,int>> check_pieces;
+    std::vector<std::pair<int,int>> block_check_list;
+    int check_count = 0; // account for double checks //
+
     // Checks all tiles where a queen or rook can be checking //
     moves_line(row, col,  1, 0, board, check_pieces);
     moves_line(row, col, -1, 0, board, check_pieces);
     moves_line(row, col, 0,  1, board, check_pieces);
     moves_line(row, col, 0, -1, board, check_pieces);
+
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'R')){
-            return false; // tile being covered by queen or rook
+            check_count += 1; // tile being covered by queen or rook
+            block_check_list = check_pieces;
         }
     }
+    if (check_count > 1){
+        return {{-1,-1}};
+    }
     check_pieces.clear();
+
+//-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where queen or bishop can be checking //
     moves_line(row, col,  1,  1, board, check_pieces);
     moves_line(row, col,  1, -1, board, check_pieces);
     moves_line(row, col, -1,  1, board, check_pieces);
     moves_line(row, col, -1, -1, board, check_pieces);
+
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'B')){
-            return false; // tile being covered by queen or rook
+            check_count += 1; // tile being covered by queen or bishop
+            block_check_list = check_pieces;
         }
     }
+    if (check_count > 1){
+        return {{-1,-1}};
+    }
     check_pieces.clear();
+
+//-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where a knight can be checking //
     knight_move(row, col, 2,  1, board, check_pieces);
     knight_move(row, col, 2, -1, board, check_pieces);
@@ -110,18 +127,75 @@ bool King::check_if_valid(int row, int col, const QString board[8][8]){
     knight_move(row, col, -1, -2, board, check_pieces);
     knight_move(row, col, -2,  1, board, check_pieces);
     knight_move(row, col, -2, -1, board, check_pieces);
+
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'N')){
-            return false; // tile being covered by queen or rook
+            check_count += 1; // tile being covered by knight, cannot be blocked
+            check_pieces.push_back(std::make_pair(move.first, move.second)); // can capture the knight //
         }
+    }
+    if (check_count > 1){
+        return {{-1,-1}};
     }
     check_pieces.clear();
 
-    // Checks the 2 pawn moves that can check //
+//-------------------------------------------------------------------------------------------------------------//
+    // Checks the 2 pawn positions that can check //
 
-    // Checks if enemy king covers //
+    if (board[row][col] == "wK" && row-1 >= 0){ // white king scenario //
+        if (col+1 < 8 && board[row-1][col+1] == (opposite + 'P')){
+            check_count += 1;
+            check_pieces.push_back(std::make_pair(row-1, col+1));
+        }
+        else if(col-1 >= 0 && board[row-1][col-1] == (opposite + 'P')){
+            check_count += 1;
+            check_pieces.push_back(std::make_pair(row-1, col-1));
+        }
+    }
+    else if(board[row][col] == "bK" && row+1 >= 0){ // black king scenario //
+        if (col+1 < 8 && board[row+1][col+1] == (opposite + 'P')){
+            check_count += 1;
+            check_pieces.push_back(std::make_pair(row+1, col+1));
+        }
+        else if(col-1 >= 0 && board[row+1][col-1] == (opposite + 'P')){
+            check_count += 1;
+            check_pieces.push_back(std::make_pair(row+1, col-1));
+        }
+    }
+    if (check_count > 1){
+        return {{-1,-1}};
+    }
 
-    return true;
+
+//-------------------------------------------------------------------------------------------------------------//
+    // Checks if enemy king covers, 8 tiles //
+    if (row >= 0 && col+1 < 8 &&       board[row-1][col+1] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (row >= 0 &&               board[row-1][col  ] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (row >= 0 && col-1 >= 0 && board[row-1][col-1] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (row < 8 && col+1 < 8 &&   board[row+1][col+1] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (row < 8 &&                board[row+1][col  ] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (col-1 >= 0 &&             board[row  ][col-1] == (opposite + 'K')){
+        check_count += 1;
+    }
+    else if (col+1 < 8 &&              board[row  ][col+1] == (opposite + 'K')){
+        check_count += 1;
+    }
+
+    if (check_count > 1){
+        return {{-1,-1}};
+    }
+
+    return block_check_list; // if check count only 1, then returns move list //
 }
 
 // --------- // Queen // ------------------------------------------------------------------------------------- //
