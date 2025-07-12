@@ -60,10 +60,8 @@ void chess_game::deselect_all(){
         s_label->deselect();
     }
     for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
-    for (const auto& move : block_move_list) {Tiles[move.first][move.second]->deselect();}
 
     s_move_list.clear();
-    block_move_list.clear();
     s_label = nullptr;
 }
 
@@ -73,10 +71,11 @@ void chess_game::select_piece(PieceLabel* clicked_label){
         s_label = clicked_label;
         s_label->select();
         s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
-
-        if(board[s_label->get_row()][s_label->get_col()].at(1) != 'K'){ // only if not king //
+        if (board[s_label->get_row()][s_label->get_col()].at(1) != 'K'){ // only if not king //
+            in_check = check_if_in_check();
+            qDebug() << in_check;
             if (in_check){
-                // limit moveset to rid checks //
+                // limit moveset to rid/block checks //
                 std::vector<std::pair<int, int>> result;
                 for (const auto& pair : block_move_list) {
                     if (std::find(s_move_list.begin(), s_move_list.end(), pair) != s_move_list.end()) {
@@ -85,7 +84,7 @@ void chess_game::select_piece(PieceLabel* clicked_label){
                 }
                 s_move_list = result; // only provides moves that get out of check //
             }
-            else{ // checks if the piece is pinned //
+            else{ // checks if the piece is pinned and limits moveset //
                 std::vector<std::pair<int, int>>pin_move_list = clicked_label->get_object()->check_if_pinned(s_label->get_row(), s_label->get_col(), board);
                 if (!pin_move_list.empty()){
                     std::vector<std::pair<int, int>> result;
@@ -103,14 +102,16 @@ void chess_game::select_piece(PieceLabel* clicked_label){
 }
 
 void chess_game::switch_turn(){
+    deselect_all();
     white_turn = !white_turn;
 
     if (checkmate){bool win = true;}
 
-    if (white_turn){black_king_label->remove_check();} // removes red check background //
-    else{white_king_label->remove_check();}
+    if (!white_turn){white_king_label->remove_check();} // removes red check background //
+    else{black_king_label->remove_check();}
 
-    in_check = check_if_in_check(); // always checks if in check, accounts for discoveries //
+    in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
+    qDebug() << "good";
     if (white_turn && in_check){white_king_label->check_king();}
     else if (!white_turn && in_check){black_king_label->check_king();}
 }
@@ -146,7 +147,6 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
             if (move.first == clicked_row && move.second == clicked_col){
                 delete clicked_label;
                 move_piece(s_label, clicked_row, clicked_col);
-                deselect_all();
                 switch_turn();
                 break;
             }
@@ -160,34 +160,36 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
             if (tile == Tiles[move.first][move.second]){ // clicked on tile is in moveset //
                 move_piece(s_label, move.first, move.second);
                 switch_turn();
+                return;
             }
             Tiles[move.first][move.second]->deselect();
         }
         s_label->deselect();
         s_label = nullptr;
     }
+    else{ deselect_all(); }
 }
 
 bool chess_game::check_if_in_check(){
     block_move_list.clear();
-    if (white_turn){
+    if (white_turn && white_king != nullptr){
         block_move_list = white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
     }
-    else{
+    else if (black_king != nullptr){
         block_move_list = black_king->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
     }
     if (!block_move_list.empty()){
-        if (block_move_list.at(0).first == -1){ // double check case
+        if (block_move_list.at(0).first == -1){ // double check case or king guarding square //
             block_move_list.clear();
             return true;
         }
-        else if(block_move_list.at(0).first == -2){ // invalid case, not check
+        else if(block_move_list.at(0).first == -2){ // invalid case, not check //
             block_move_list.clear();
             return false;
         }
-        else{ return true; } // 1 check
+        else{ return true; } // 1 check //
     }
-    return false;
+    else { return false; } // is empty //
 }
 
 void chess_game::setup_board(){

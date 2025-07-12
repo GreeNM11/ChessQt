@@ -24,9 +24,7 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
             king_col = moveset.back().second+direction[c][1];
         }
         if (king_row >= 0 && king_row < 8 && king_col >= 0 && king_col < 8 && board[king_row][king_col] == same + 'K'){
-            moves_line(row, col,  -1*direction[c][0], -1*direction[c][1], board, moveset); // adds other side of line //
-            qDebug() << "king found";
-            qDebug() << king_row; qDebug() << king_col;
+            moves_line(row, col,  -1*direction[c][0], -1*direction[c][1], board, moveset); // adds other side of line //;
             break; // stops clear to use moveset after //
         }
         moveset.clear();
@@ -34,20 +32,15 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
     if (moveset.empty()){return {};} // found no king to be pinned to //
 
     QString end = board[moveset.back().first][moveset.back().second]; // piece that was found //
-    qDebug() << "Piece found: " + end ;
     if (end == "" || end.at(0) == same || QString("PKN").contains(end.at(1))){
-        qDebug() << 3;
         return {}; // no enemy piece, friendly piece to pin, or enemy piece: pawn, king, or knight cannot pin//
     }
     else if (c < 4 && end == (opposite + 'Q') || end == (opposite + 'R')){
-        qDebug() << 4;
         return moveset; // found enemy Q or R on up or down lines //
     }
     else if (c >= 4 && end == (opposite + 'Q') || end == (opposite + 'B')){
-        qDebug() << 5;
         return moveset; // found enemy Q or B on diagonal lines //
     }
-    qDebug() << 6;
     return {};
 }
 
@@ -118,7 +111,7 @@ void King::add_valid_move(int row, int col, const QString board[8][8], std::vect
 
 std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QString board[8][8]){
     if (row >= 8 || row < 0 || col >= 8 || col < 0 || (board[row][col] != nullptr && board[row][col].at(0) == same && board[row][col] != same + 'K')){
-        return {{-2,-2}};  // cant move outside board or same color piece
+        return {{-2,-1}};  // cant move outside board or same color piece
     }
     std::vector<std::pair<int,int>> check_pieces;
     std::vector<std::pair<int,int>> block_check_list;
@@ -127,108 +120,106 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     // Checks all tiles where a queen or rook can be checking //
     for (int i = 0; i < 4; i++){
         moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
-    }
-    for (const auto& move : check_pieces){
-        if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'R')){
-            check_count += 1; // tile being covered by queen or rook
-            block_check_list = check_pieces;
+        for (auto tile : check_pieces){
+            QString p = board[tile.first][tile.second];
+            if (p == (opposite + 'Q') || p == (opposite + 'R')){
+                check_count += 1; // tile being covered by queen or rook //
+                block_check_list = check_pieces;
+            }
         }
+        check_pieces.clear();
     }
-    if (check_count > 1){
-        return {{-1,-1}};
-    }
-    check_pieces.clear();
-
+    if (check_count > 1){return {{-1,-1}};} // returns if double check, cannot be blocked //
 //-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where queen or bishop can be checking //
     for (int i = 4; i < 8; i++){
         moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
-    }
-    for (const auto& move : check_pieces){
-        if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'B')){
-            check_count += 1; // tile being covered by queen or bishop
-            block_check_list = check_pieces;
+        for (auto tile : check_pieces){
+            QString p = board[tile.first][tile.second];
+            if (p == (opposite + 'Q') || p == (opposite + 'B')){
+                check_count += 1; // tile being covered by queen or bishop //
+                block_check_list = check_pieces;
+            }
         }
+        check_pieces.clear();
     }
-    if (check_count > 1){
-        return {{-1,-1}};
-    }
-    check_pieces.clear();
+    if (check_count > 1){return {{-1,-2}};}
 
 //-------------------------------------------------------------------------------------------------------------//
     // Checks all 8 tiles where a knight can be checking //
     for (int i = 0; i < 8; i++){
         knight_move(row, col,  knight_direction[i][0], knight_direction[i][1], board, check_pieces);
-    }
-    for (const auto& move : check_pieces){
-        if (board[move.first][move.second] == (opposite + 'N')){
-            check_count += 1; // tile being covered by knight, cannot be blocked
-            check_pieces.push_back(std::make_pair(move.first, move.second)); // can capture the knight //
+        for (auto tile : check_pieces){
+            QString p = board[tile.first][tile.second];
+            if (p == (opposite + 'N')){
+                check_count += 1; // tile being covered by knight, cannot be blocked //
+                block_check_list.push_back(std::make_pair(row+knight_direction[i][0], col+knight_direction[i][1])); // can capture the knight //
+            }
         }
     }
-    if (check_count > 1){
-        return {{-1,-1}};
-    }
-    check_pieces.clear();
+    if (check_count > 1){return {{-1,-3}};}
 
 //-------------------------------------------------------------------------------------------------------------//
     // Checks the 2 pawn positions that can check //
-
     if (same == 'w' && row-1 >= 0){ // white king scenario //
         if (col+1 < 8 && board[row-1][col+1] == (opposite + 'P')){
             check_count += 1;
-            check_pieces.push_back(std::make_pair(row-1, col+1));
+            block_check_list.push_back(std::make_pair(row-1, col+1));
         }
         else if(col-1 >= 0 && board[row-1][col-1] == (opposite + 'P')){
             check_count += 1;
-            check_pieces.push_back(std::make_pair(row-1, col-1));
+            block_check_list.push_back(std::make_pair(row-1, col-1));
         }
     }
     else if(same == 'b' && row+1 >= 0){ // black king scenario //
         if (col+1 < 8 && board[row+1][col+1] == (opposite + 'P')){
             check_count += 1;
-            check_pieces.push_back(std::make_pair(row+1, col+1));
+            block_check_list.push_back(std::make_pair(row+1, col+1));
         }
         else if(col-1 >= 0 && board[row+1][col-1] == (opposite + 'P')){
             check_count += 1;
-            check_pieces.push_back(std::make_pair(row+1, col-1));
+            block_check_list.push_back(std::make_pair(row+1, col-1));
         }
     }
-    if (check_count > 1){
-        return {{-1,-1}};
-    }
-
+    if (check_count > 1){return {{-1,-4}};}
 
 //-------------------------------------------------------------------------------------------------------------//
     // Checks if enemy king covers, 8 tiles //
+    bool pawn_check = false;
     if (row >= 0 && col+1 < 8 &&       board[row-1][col+1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (row >= 0 &&               board[row-1][col  ] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (row >= 0 && col-1 >= 0 && board[row-1][col-1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (row < 8 && col+1 < 8 &&   board[row+1][col+1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (row < 8 &&                board[row+1][col  ] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (row < 8 && col-1 >= 0 &&  board[row+1][col-1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (col-1 >= 0 &&             board[row  ][col-1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
     else if (col+1 < 8 &&              board[row  ][col+1] == (opposite + 'K')){
         check_count += 1;
+        pawn_check = true;
     }
-
-    if (check_count >= 1 && block_check_list.empty()){
-        return {{-1,-1}};
-    }
+    if (pawn_check){block_check_list.push_back(std::make_pair(-1, -1));}
+    if (check_count > 1){return {{-1,-5}};}
 
     return block_check_list; // if check count only 1, then returns move list //
 }
