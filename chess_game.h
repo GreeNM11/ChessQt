@@ -51,7 +51,7 @@ private:
     std::vector<std::pair<int,int>> block_move_list = {}; // movelist that get player out of check //
 
     int in_check; // 0 is no, 1 is check, 2 is double check //
-    bool check_mate;
+    bool checkmate;
 
     // Board Functions //
     Piece* make_piece(QString pieceCode);

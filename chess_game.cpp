@@ -59,14 +59,11 @@ void chess_game::deselect_all(){
     if (s_label != nullptr){
         s_label->deselect();
     }
-    if (!in_check){
-        for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
-    }
-    else{
-        for (const auto& move : block_move_list) {Tiles[move.first][move.second]->deselect();}
-    }
+    for (const auto& move : s_move_list) {Tiles[move.first][move.second]->deselect();}
+    for (const auto& move : block_move_list) {Tiles[move.first][move.second]->deselect();}
 
     s_move_list.clear();
+    block_move_list.clear();
     s_label = nullptr;
 }
 
@@ -76,28 +73,46 @@ void chess_game::select_piece(PieceLabel* clicked_label){
         s_label = clicked_label;
         s_label->select();
         s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
-        if (in_check){
-            std::vector<std::pair<int, int>> result;
-            for (const auto& pair : block_move_list) {
-                if (std::find(s_move_list.begin(), s_move_list.end(), pair) != s_move_list.end()) {
-                    result.push_back(pair);
+
+        if(board[s_label->get_row()][s_label->get_col()].at(1) != 'K'){ // only if not king //
+            if (in_check){
+                // limit moveset to rid checks //
+                std::vector<std::pair<int, int>> result;
+                for (const auto& pair : block_move_list) {
+                    if (std::find(s_move_list.begin(), s_move_list.end(), pair) != s_move_list.end()) {
+                        result.push_back(pair);
+                    }
+                }
+                s_move_list = result; // only provides moves that get out of check //
+            }
+            else{ // checks if the piece is pinned //
+                std::vector<std::pair<int, int>>pin_move_list = clicked_label->get_object()->check_if_pinned(s_label->get_row(), s_label->get_col(), board);
+                if (!pin_move_list.empty()){
+                    std::vector<std::pair<int, int>> result;
+                    for (const auto& pair : pin_move_list) {
+                        if (std::find(s_move_list.begin(), s_move_list.end(), pair) != s_move_list.end()) {
+                            result.push_back(pair);
+                        }
+                    }
+                    s_move_list = result; // only provides moves that pinned piece can do //
                 }
             }
-            s_move_list = result;
         }
-        for (const auto& move : s_move_list) {Tiles[move.first][move.second]->select();}
+        for (const auto& move : s_move_list) {Tiles[move.first][move.second]->select();} // highlights moves //
     }
 }
 
 void chess_game::switch_turn(){
-    white_king_label->deselect();
-    black_king_label->deselect();
-
     white_turn = !white_turn;
-    in_check = check_if_in_check();
+
+    if (checkmate){bool win = true;}
+
+    if (white_turn){black_king_label->remove_check();} // removes red check background //
+    else{white_king_label->remove_check();}
+
+    in_check = check_if_in_check(); // always checks if in check, accounts for discoveries //
     if (white_turn && in_check){white_king_label->check_king();}
     else if (!white_turn && in_check){black_king_label->check_king();}
-
 }
 
 void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
@@ -118,18 +133,12 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
     int clicked_col = clicked_label->get_col();
 
     if (clicked_label->get_color() == white_turn){ // clicked on piece and is players turn //
-        if (s_label == nullptr){
-            // if no piece selected, set selected piece and get moveset //
-            select_piece(clicked_label);
-        }
-        else if (!same){
-            // deselected old piece and selected new piece and get new moveset //
+        if (!same){ // cant be null or same piece //
             deselect_all();
             select_piece(clicked_label);
         }
     }
-
-    if (clicked_label->get_color() != white_turn){ // clicked on enemy piece //
+    else if (clicked_label->get_color() != white_turn && s_label != nullptr){ // clicked on enemy piece //
         bool capture_piece = false;
         int r; int c;
         for (const auto& move : s_move_list) {
@@ -160,6 +169,7 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
 }
 
 bool chess_game::check_if_in_check(){
+    block_move_list.clear();
     if (white_turn){
         block_move_list = white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
     }

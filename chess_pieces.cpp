@@ -12,6 +12,45 @@ bool Piece::get_color() const { return isWhite; }
 void Piece::has_moved(){ hasMoved = true; }
 std::vector<std::pair<int,int>>Piece::get_moveset(int row, int col, const QString board[8][8]){return moveset;}
 
+std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const QString board[8][8]){
+    moveset.clear();
+    int c;
+    for (c = 0;c < 8; c++){ // if a king is in a line, then add the whole line to the moveset //
+        moves_line(row, col,  direction[c][0], direction[c][1], board, moveset); // tries to find king //
+        int king_row = row+direction[c][0];
+        int king_col = col+direction[c][1]; // adds one increment, moveset stops before friendly piece //
+        if (!moveset.empty()){
+            king_row = moveset.back().first+direction[c][0];
+            king_col = moveset.back().second+direction[c][1];
+        }
+        if (king_row >= 0 && king_row < 8 && king_col >= 0 && king_col < 8 && board[king_row][king_col] == same + 'K'){
+            moves_line(row, col,  -1*direction[c][0], -1*direction[c][1], board, moveset); // adds other side of line //
+            qDebug() << "king found";
+            qDebug() << king_row; qDebug() << king_col;
+            break; // stops clear to use moveset after //
+        }
+        moveset.clear();
+    }
+    if (moveset.empty()){return {};} // found no king to be pinned to //
+
+    QString end = board[moveset.back().first][moveset.back().second]; // piece that was found //
+    qDebug() << "Piece found: " + end ;
+    if (end == "" || end.at(0) == same || QString("PKN").contains(end.at(1))){
+        qDebug() << 3;
+        return {}; // no enemy piece, friendly piece to pin, or enemy piece: pawn, king, or knight cannot pin//
+    }
+    else if (c < 4 && end == (opposite + 'Q') || end == (opposite + 'R')){
+        qDebug() << 4;
+        return moveset; // found enemy Q or R on up or down lines //
+    }
+    else if (c >= 4 && end == (opposite + 'Q') || end == (opposite + 'B')){
+        qDebug() << 5;
+        return moveset; // found enemy Q or B on diagonal lines //
+    }
+    qDebug() << 6;
+    return {};
+}
+
 void Piece::moves_line(int p_row, int p_col, int r_mult, int c_mult, const QString board[8][8], std::vector<std::pair<int,int>> &m){
 
 // Takes in piece location and a direction, then adds available moves in that line/diaganol to moveset //
@@ -28,7 +67,7 @@ void Piece::moves_line(int p_row, int p_col, int r_mult, int c_mult, const QStri
             m.push_back(std::make_pair(r, c));
             blocked = true;
         }
-        else if (board[r][c].at(0) != opposite){
+        else if (board[r][c].at(0) == same){
             blocked = true;
         }
         r += r_mult;
@@ -53,15 +92,18 @@ King::King(bool w) : Piece(w) {
 King::~King(){}
 std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString board[8][8]){
     moveset.clear();
+    QString b[8][8];
+    for (int r=0; r<8; r++){
+        for (int c=0; c<8; c++){
+            if (board[r][c] != same+'K'){
+                b[r][c] = board[r][c]; // makes board without same side king to avoid king blocking checks //
+            }
+        }
+    }
     // All 8 possible king moves //
-    add_valid_move(row, col+1, board, moveset);
-    add_valid_move(row, col-1, board, moveset);
-    add_valid_move(row+1, col, board, moveset);
-    add_valid_move(row-1, col, board, moveset);
-    add_valid_move(row+1, col+1, board, moveset);
-    add_valid_move(row+1, col-1, board, moveset);
-    add_valid_move(row-1, col+1, board, moveset);
-    add_valid_move(row-1, col-1, board, moveset);
+    for (int i = 0; i < 8; i++){
+        add_valid_move(row+direction[i][0], col+direction[i][1], b, moveset);
+    }
     return moveset;
 }
 
@@ -83,11 +125,9 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     int check_count = 0; // account for double checks //
 
     // Checks all tiles where a queen or rook can be checking //
-    moves_line(row, col,  1, 0, board, check_pieces);
-    moves_line(row, col, -1, 0, board, check_pieces);
-    moves_line(row, col, 0,  1, board, check_pieces);
-    moves_line(row, col, 0, -1, board, check_pieces);
-
+    for (int i = 0; i < 4; i++){
+        moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
+    }
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'R')){
             check_count += 1; // tile being covered by queen or rook
@@ -101,11 +141,9 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
 
 //-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where queen or bishop can be checking //
-    moves_line(row, col,  1,  1, board, check_pieces);
-    moves_line(row, col,  1, -1, board, check_pieces);
-    moves_line(row, col, -1,  1, board, check_pieces);
-    moves_line(row, col, -1, -1, board, check_pieces);
-
+    for (int i = 4; i < 8; i++){
+        moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
+    }
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'Q') || board[move.first][move.second] == (opposite + 'B')){
             check_count += 1; // tile being covered by queen or bishop
@@ -118,16 +156,10 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     check_pieces.clear();
 
 //-------------------------------------------------------------------------------------------------------------//
-    // Checks all tiles where a knight can be checking //
-    knight_move(row, col, 2,  1, board, check_pieces);
-    knight_move(row, col, 2, -1, board, check_pieces);
-    knight_move(row, col, 1,  2, board, check_pieces);
-    knight_move(row, col, 1, -2, board, check_pieces);
-    knight_move(row, col, -1,  2, board, check_pieces);
-    knight_move(row, col, -1, -2, board, check_pieces);
-    knight_move(row, col, -2,  1, board, check_pieces);
-    knight_move(row, col, -2, -1, board, check_pieces);
-
+    // Checks all 8 tiles where a knight can be checking //
+    for (int i = 0; i < 8; i++){
+        knight_move(row, col,  knight_direction[i][0], knight_direction[i][1], board, check_pieces);
+    }
     for (const auto& move : check_pieces){
         if (board[move.first][move.second] == (opposite + 'N')){
             check_count += 1; // tile being covered by knight, cannot be blocked
@@ -142,7 +174,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
 //-------------------------------------------------------------------------------------------------------------//
     // Checks the 2 pawn positions that can check //
 
-    if (board[row][col] == "wK" && row-1 >= 0){ // white king scenario //
+    if (same == 'w' && row-1 >= 0){ // white king scenario //
         if (col+1 < 8 && board[row-1][col+1] == (opposite + 'P')){
             check_count += 1;
             check_pieces.push_back(std::make_pair(row-1, col+1));
@@ -152,7 +184,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
             check_pieces.push_back(std::make_pair(row-1, col-1));
         }
     }
-    else if(board[row][col] == "bK" && row+1 >= 0){ // black king scenario //
+    else if(same == 'b' && row+1 >= 0){ // black king scenario //
         if (col+1 < 8 && board[row+1][col+1] == (opposite + 'P')){
             check_count += 1;
             check_pieces.push_back(std::make_pair(row+1, col+1));
@@ -184,6 +216,9 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     else if (row < 8 &&                board[row+1][col  ] == (opposite + 'K')){
         check_count += 1;
     }
+    else if (row < 8 && col-1 >= 0 &&  board[row+1][col-1] == (opposite + 'K')){
+        check_count += 1;
+    }
     else if (col-1 >= 0 &&             board[row  ][col-1] == (opposite + 'K')){
         check_count += 1;
     }
@@ -191,7 +226,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
         check_count += 1;
     }
 
-    if (check_count > 1){
+    if (check_count >= 1 && block_check_list.empty()){
         return {{-1,-1}};
     }
 
@@ -206,17 +241,10 @@ Queen::Queen(bool w) : Piece(w) {
 Queen::~Queen(){}
 std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QString board[8][8]){
     moveset.clear();
-    // combines both bishop and rook moves //
-    moves_line(row, col,  1, 0, board, moveset);
-    moves_line(row, col, -1, 0, board, moveset);
-    moves_line(row, col, 0,  1, board, moveset);
-    moves_line(row, col, 0, -1, board, moveset);
-
-    moves_line(row, col,  1,  1, board, moveset);
-    moves_line(row, col,  1, -1, board, moveset);
-    moves_line(row, col, -1,  1, board, moveset);
-    moves_line(row, col, -1, -1, board, moveset);
-
+    // combines both bishop and rook moves, entire direction array //
+    for (int i = 0; i < 8; i++){
+        moves_line(row, col,  direction[i][0], direction[i][1], board, moveset);
+    }
     return moveset;
 }
 // --------- // Rook // -------------------------------------------------------------------------------------- //
@@ -227,11 +255,10 @@ Rook::Rook(bool w) : Piece(w) {
 Rook::~Rook(){}
 std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString board[8][8]){
     moveset.clear();
-    // 2 horizontal and 2 vertical lines //
-    moves_line(row, col,  1, 0, board, moveset);
-    moves_line(row, col, -1, 0, board, moveset);
-    moves_line(row, col, 0,  1, board, moveset);
-    moves_line(row, col, 0, -1, board, moveset);
+    // 2 horizontal and 2 vertical lines, first half of direction array //
+    for (int i = 0; i < 4; i++){
+        moves_line(row, col,  direction[i][0], direction[i][1], board, moveset);
+    }
     return moveset;
 }
 // --------- // Bishop // ------------------------------------------------------------------------------------ //
@@ -242,11 +269,10 @@ Bishop::Bishop(bool w) : Piece(w) {
 Bishop::~Bishop(){}
 std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QString board[8][8]){
     moveset.clear();
-    // 4 diagonals for bishop //
-    moves_line(row, col,  1,  1, board, moveset);
-    moves_line(row, col,  1, -1, board, moveset);
-    moves_line(row, col, -1,  1, board, moveset);
-    moves_line(row, col, -1, -1, board, moveset);
+    // 4 diagonals for bishop, second half of direction array //
+    for (int i = 4; i < 8; i++){
+        moves_line(row, col,  direction[i][0], direction[i][1], board, moveset);
+    }
     return moveset;
 }
 // --------- // Knight // ------------------------------------------------------------------------------------ //

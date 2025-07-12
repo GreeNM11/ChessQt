@@ -13,7 +13,6 @@ void PieceLabel::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(this);
     }
-
 }
 void PieceLabel::select(){
     selected = true;
@@ -22,6 +21,9 @@ void PieceLabel::select(){
 
 void PieceLabel::deselect() {
     setStyleSheet("");
+    if (in_check){
+        check_king();
+    }
     selected = false;
 }
 
@@ -29,23 +31,20 @@ void PieceLabel::set_capturable(){
     setStyleSheet("background-color: rgba(120, 100, 100, 200);");
 }
 
-bool PieceLabel::move_piece(int r, int c, int tileSize){
-    if (1 == 1){ //make if r and c = moveset[r][c]
-        move(c * tileSize, r * tileSize);
-        row = r;
-        col = c;
-
-        return true;
-    }
-    else{
-        return false;
-    }
+void PieceLabel::move_piece(int r, int c, int tileSize){
+    move(c * tileSize, r * tileSize);
+    row = r;
+    col = c;
 }
 
 void PieceLabel::check_king(){
     setStyleSheet("background-color: rgba(100, 0, 0, 200);");
+    in_check = true;
 }
-
+void PieceLabel::remove_check(){
+    in_check = false;
+    deselect();
+}
 Piece* PieceLabel::get_object(){
     return p_object;
 }

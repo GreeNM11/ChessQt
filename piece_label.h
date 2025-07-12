@@ -15,7 +15,9 @@ public:
     void select();
     void deselect();
     void set_capturable();
-    bool move_piece(int row, int col, int tileSize);
+    void move_piece(int row, int col, int tileSize);
+    void check_king();
+    void remove_check();
 
     Piece* get_object();
     int get_col();
@@ -30,6 +32,7 @@ private:
     bool selected = false;
     int col;
     int row;
+    bool in_check = false;
 
 signals:
     void clicked(PieceLabel* clicked_label);

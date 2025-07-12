@@ -16,9 +16,13 @@ public:
     bool get_piece_type() const;
     void has_moved();
     virtual std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8]);
+    std::vector<std::pair<int,int>> check_if_pinned(int row, int col, const QString board[8][8]);
 
 protected:
+     // Constants //
     enum piece_type {wK, wQ, wB, wN, wR, wP, bK, bQ, bB, bN, bR, bP};
+    const int direction[8][2] = {{1,0},{0, 1},{-1,0},{0, -1},{1,1},{-1, 1},{1,-1},{-1, -1}};
+    const int knight_direction[8][2] = {{2, 1},{2, -1},{-2, 1},{-2, -1},{1, 2},{-1, 2},{1, -2},{-1, -2}};
 
     // Variables //
     bool isWhite;
