@@ -36,9 +36,11 @@ private:
     };
 
     ClickableTileLabel* Tiles[8][8]; // board for Tile[row][col] //
+    Piece* piece_board[8][8]; // object_board[row][col] //
     PieceLabel* piece_label_board[8][8]; // label_board[row][col] //
 
-    PieceLabel* s_label = nullptr; // keeps track of selected piece
+    PieceLabel* s_label = nullptr; // keeps track of selected piece //
+    Piece* last_moved = nullptr; // keeps track of last move //
     std::vector<std::pair<int,int>> s_move_list = {}; // vector of selected piece's available moves
 
     bool white_turn = true;
@@ -62,9 +64,11 @@ private:
     void switch_turn();
 
     void move_piece(PieceLabel* p, int new_row, int new_col);
+
     void click_piece_action(PieceLabel* clicked_label);
     void click_tile_action(ClickableTileLabel* tile);
 
+    void check_promotion(PieceLabel* p, int row, int col);
     bool check_if_in_check();
     bool check_if_checkmate();
 

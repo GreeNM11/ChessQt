@@ -35,6 +35,7 @@ Piece* chess_game::make_piece(QString pieceCode){
 
 PieceLabel* chess_game::make_piece_label(int row, int col, QString pieceCode, int tileSize, QMap<QString, QPixmap> pieceImages){
     Piece* piece_object = make_piece(pieceCode);
+    piece_board[row][col] = piece_object;
     PieceLabel* p_label = new PieceLabel(ui->labelBoard, piece_object, row, col);
     // sets up the label and sprite //
     p_label->setPixmap(pieceImages[pieceCode]);
@@ -43,6 +44,7 @@ PieceLabel* chess_game::make_piece_label(int row, int col, QString pieceCode, in
     p_label->show();
     p_label->move_piece(row, col, tileSize);
     piece_label_board[row][col] = p_label;
+    piece_board[row][col] = piece_object;
 
     // Connects piece behavior when clicked on //
     connect(piece_label_board[row][col], &PieceLabel::clicked, this, [=](PieceLabel* clicked_label){
@@ -70,10 +72,9 @@ void chess_game::select_piece(PieceLabel* clicked_label){
     if (clicked_label != nullptr){
         s_label = clicked_label;
         s_label->select();
-        s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board);
+        s_move_list = s_label->get_object()->get_moveset(s_label->get_row(), s_label->get_col(), board, piece_board, last_moved);
         if (board[s_label->get_row()][s_label->get_col()].at(1) != 'K'){ // only if not king //
             in_check = check_if_in_check();
-            qDebug() << in_check;
             if (in_check){
                 // limit moveset to rid/block checks //
                 std::vector<std::pair<int, int>> result;
@@ -102,8 +103,11 @@ void chess_game::select_piece(PieceLabel* clicked_label){
 }
 
 void chess_game::switch_turn(){
+
+    last_moved = s_label->get_object(); // tracks enemies last move //
+
     deselect_all();
-    white_turn = !white_turn;
+    white_turn = !white_turn; // switches turn //
 
     if (checkmate){bool win = true;}
 
@@ -111,7 +115,7 @@ void chess_game::switch_turn(){
     else{black_king_label->remove_check();}
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
-    qDebug() << "good";
+
     if (white_turn && in_check){white_king_label->check_king();}
     else if (!white_turn && in_check){black_king_label->check_king();}
 }
@@ -124,8 +128,13 @@ void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
     s_label->get_object()->has_moved();
     piece_label_board[new_row][new_col] = piece_label_board[p_row][p_col];
     piece_label_board[p_row][p_col] = nullptr;
+    piece_board[new_row][new_col] = piece_board[p_row][p_col];
+    piece_board[p_row][p_col] = nullptr;
     board[new_row][new_col] = board[p_row][p_col];
     board[p_row][p_col] = "";
+
+    if (p->get_object()->get_piece_type().at(1) == 'P'){check_promotion(p, new_row, new_col);}
+    switch_turn(); // move always switches when piece moves //
 }
 
 void chess_game::click_piece_action(PieceLabel* clicked_label){
@@ -147,10 +156,29 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
             if (move.first == clicked_row && move.second == clicked_col){
                 delete clicked_label;
                 move_piece(s_label, clicked_row, clicked_col);
-                switch_turn();
                 break;
             }
         }
+    }
+}
+
+void chess_game::check_promotion(PieceLabel* p, int row, int col){
+    bool promote = false;
+    QString pawn_color = p->get_object()->get_piece_type().at(0);
+    QString selected_piececode;
+
+    if (pawn_color == 'w' && row == 0){
+        selected_piececode = "wQ";
+        promote = true;
+    }
+    else if (pawn_color == 'b' && row == 7){
+        selected_piececode = "bQ";
+        promote = true;
+    }
+    if (promote == true){
+        delete p;
+        make_piece_label(row, col, selected_piececode, tileSize, pieceImages);
+        board[row][col] = selected_piececode;
     }
 }
 
@@ -159,7 +187,6 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
         for (const auto& move : s_move_list) {
             if (tile == Tiles[move.first][move.second]){ // clicked on tile is in moveset //
                 move_piece(s_label, move.first, move.second);
-                switch_turn();
                 return;
             }
             Tiles[move.first][move.second]->deselect();
@@ -190,6 +217,13 @@ bool chess_game::check_if_in_check(){
         else{ return true; } // 1 check //
     }
     else { return false; } // is empty //
+}
+
+bool chess_game::check_if_checkmate(){
+    if (s_move_list.empty()){ // need to check every piece cannot move and king in check //
+        return true;
+    }
+    return false;
 }
 
 void chess_game::setup_board(){

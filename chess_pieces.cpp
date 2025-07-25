@@ -8,9 +8,11 @@ Piece::Piece(bool w){
     opposite = w ? 'b' : 'w';
 }
 Piece::~Piece(){}
-bool Piece::get_color() const { return isWhite; }
 void Piece::has_moved(){ hasMoved = true; }
-std::vector<std::pair<int,int>>Piece::get_moveset(int row, int col, const QString board[8][8]){return moveset;}
+bool Piece::get_color() const { return isWhite; }
+QString Piece::get_piece_type() const { return type; }
+
+std::vector<std::pair<int,int>>Piece::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){return moveset;}
 
 std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const QString board[8][8]){
     moveset.clear();
@@ -31,7 +33,7 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
     }
     if (moveset.empty()){return {};} // found no king to be pinned to //
 
-    QString end = board[moveset.back().first][moveset.back().second]; // piece that was found //
+    QString end = board[moveset.back().first][moveset.back().second]; // piece that was found, end of vector //
     if (end == "" || end.at(0) == same || QString("PKN").contains(end.at(1))){
         return {}; // no enemy piece, friendly piece to pin, or enemy piece: pawn, king, or knight cannot pin//
     }
@@ -43,6 +45,8 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
     }
     return {};
 }
+
+bool Piece::get_move_twice(){return move_twice;}
 
 void Piece::moves_line(int p_row, int p_col, int r_mult, int c_mult, const QString board[8][8], std::vector<std::pair<int,int>> &m){
 
@@ -77,13 +81,14 @@ void Piece::knight_move(int row, int col, int vertical, int horizontal, const QS
         }
     }
 }
+
 // --------- // King // -------------------------------------------------------------------------------------- //
 
 King::King(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wK) : piece_type(bK);
+    type = isWhite ? "wK" : "bK";
 }
 King::~King(){}
-std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     QString b[8][8];
     for (int r=0; r<8; r++){
@@ -227,10 +232,10 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
 // --------- // Queen // ------------------------------------------------------------------------------------- //
 
 Queen::Queen(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wQ) : piece_type(bQ);
+    type = isWhite ? "wQ" : "bQ";
 }
 Queen::~Queen(){}
-std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // combines both bishop and rook moves, entire direction array //
     for (int i = 0; i < 8; i++){
@@ -241,10 +246,10 @@ std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QStrin
 // --------- // Rook // -------------------------------------------------------------------------------------- //
 
 Rook::Rook(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wR) : piece_type(bR);
+    type = isWhite ? "wR" : "bR";
 }
 Rook::~Rook(){}
-std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // 2 horizontal and 2 vertical lines, first half of direction array //
     for (int i = 0; i < 4; i++){
@@ -255,10 +260,10 @@ std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString
 // --------- // Bishop // ------------------------------------------------------------------------------------ //
 
 Bishop::Bishop(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wB) : piece_type(bB);
+    type = isWhite ? "wB" : "bB";
 }
 Bishop::~Bishop(){}
-std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // 4 diagonals for bishop, second half of direction array //
     for (int i = 4; i < 8; i++){
@@ -269,10 +274,10 @@ std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QStri
 // --------- // Knight // ------------------------------------------------------------------------------------ //
 
 Knight::Knight(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wN) : piece_type(bN);
+    type = isWhite ? "wN" : "bN";
 }
 Knight::~Knight(){}
-std::vector<std::pair<int,int>>Knight::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>Knight::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // all 8 possible moves for knights //
     knight_move(row, col, 2,  1, board, moveset);
@@ -288,15 +293,10 @@ std::vector<std::pair<int,int>>Knight::get_moveset(int row, int col, const QStri
 // --------- // Pawn // ------------------------------------------------------------------------------------- //
 
 Pawn::Pawn(bool w) : Piece(w) {
-    type = isWhite ? piece_type(wP) : piece_type(bP);
+    type = isWhite ? "wP" : "bP";
 }
 Pawn::~Pawn(){}
-bool Pawn::just_moved(bool stop){
-    if (stop){pawn_just_moved = false;}
-    return pawn_just_moved;
-}
-
-std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     int direction = 1;
     if (isWhite){direction = -1;}
@@ -306,17 +306,34 @@ std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString
         moveset.push_back(std::make_pair(up_one, col));
         if (!hasMoved && board[up_one + direction][col] == ""){
             moveset.push_back(std::make_pair(up_one + direction, col));
-            pawn_just_moved = true; // for en passant
+            move_twice = true; // for en passant availability //
         }
     }
     // capturing moves //
-    if (col+1 < 8 && board[up_one][col+1].at(0) == opposite){
-        moveset.push_back(std::make_pair(up_one, col+1));
+    if (col+1 < 8){ // right side scenario //
+        if (board[up_one][col+1].at(0) == opposite){
+            moveset.push_back(std::make_pair(up_one, col+1));
+        }
+        else if (board[row][col+1] == opposite + 'P' && p_board[row][col+1] == last_moved){ // en passant //
+            qDebug() << last_moved->get_piece_type();
+            if (last_moved->get_move_twice() == true){
+                qDebug() << '2';
+                moveset.push_back(std::make_pair(up_one, col+1));
+            }
+        }
     }
-    if (col-1 > 0 && board[up_one][col-1].at(0) == opposite){
-        moveset.push_back(std::make_pair(up_one, col-1));
+    if (col-1 > 0){ // left side scenario //
+        if (board[up_one][col-1].at(0) == opposite){
+            moveset.push_back(std::make_pair(up_one, col-1));
+        }
+        else if (board[row][col-1] == opposite + 'P' && p_board[row][col-1] == last_moved){
+            qDebug() << last_moved->get_piece_type();
+            if (last_moved->get_move_twice() == true){
+                qDebug() << '2';
+                moveset.push_back(std::make_pair(up_one, col-1));
+            }
+        }
     }
-
     return moveset;
 }
 // --------------------------------------------------------------------------------------------------------- //
