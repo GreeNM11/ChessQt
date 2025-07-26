@@ -49,6 +49,7 @@ public:
 private:
     std::vector<std::pair<int,int>> check_if_valid(int row, int col, const QString board[8][8]);
     void add_valid_move(int row, int col, const QString board[8][8], std::vector<std::pair<int,int>> &m);
+    void add_castle_move(int row, int col, const QString board[8][8], Piece* p_board[8][8]);
 };
 
 class Queen : public Piece {

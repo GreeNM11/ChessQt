@@ -9,6 +9,7 @@ Piece::Piece(bool w){
 }
 Piece::~Piece(){}
 void Piece::has_moved(){ hasMoved = true; }
+bool Piece::get_moved(){ return hasMoved;}
 bool Piece::get_color() const { return isWhite; }
 QString Piece::get_piece_type() const { return type; }
 
@@ -26,7 +27,7 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
             king_col = moveset.back().second+direction[c][1];
         }
         if (king_row >= 0 && king_row < 8 && king_col >= 0 && king_col < 8 && board[king_row][king_col] == same + 'K'){
-            moves_line(row, col,  -1*direction[c][0], -1*direction[c][1], board, moveset); // adds other side of line //;
+            moves_line(row, col,  -1*direction[c][0], -1*direction[c][1], board, moveset); // adds other side of line //
             break; // stops clear to use moveset after //
         }
         moveset.clear();
@@ -102,12 +103,38 @@ std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString
     for (int i = 0; i < 8; i++){
         add_valid_move(row+direction[i][0], col+direction[i][1], b, moveset);
     }
+    if (!hasMoved && check_if_valid(row, col, board).empty()){add_castle_move(row, col, board, p_board);}
     return moveset;
+}
+void King::add_castle_move(int row, int col, const QString board[8][8], Piece* p_board[8][8]){
+    for (int c = col+1; c < 8; c++){ // right side castle //
+        if (board[row][c] == same + 'R' && p_board[row][c]->get_moved() == false){
+            moveset.push_back(std::make_pair(row, col+2));
+        }
+        else if (board[row][c] != ""){
+            break;
+        }
+        else if (!check_if_valid(row, c, board).empty()){
+            break;
+        }
+    }
+    for (int c = col-1; c > 0; c++){ // left side castle //
+        if (board[row][c] == same + 'R' && p_board[row][c]->get_moved() == false){
+            moveset.push_back(std::make_pair(row, col-2));
+        }
+        else if (board[row][c] != ""){
+            break;
+        }
+        else if (!check_if_valid(row, c, board).empty()){
+            break;
+        }
+    }
 }
 
 std::vector<std::pair<int,int>> King::is_in_check(int row, int col, const QString board[8][8]){
     return check_if_valid(row,col,board);
 }
+
 void King::add_valid_move(int row, int col, const QString board[8][8], std::vector<std::pair<int,int>> &m){
     if (check_if_valid(row,col,board).empty()){
         m.push_back(std::make_pair(row, col));
@@ -226,6 +253,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     if (pawn_check){block_check_list.push_back(std::make_pair(-1, -1));}
     if (check_count > 1){return {{-1,-5}};}
 
+    // if block_check_list empty, then no check //
     return block_check_list; // if check count only 1, then returns move list //
 }
 

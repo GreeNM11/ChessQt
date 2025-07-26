@@ -120,7 +120,7 @@ void chess_game::switch_turn(){
     else if (!white_turn && in_check){black_king_label->check_king();}
 }
 
-void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
+void chess_game::move_piece(PieceLabel* p, int new_row, int new_col, bool capture){
     int p_col = s_label->get_col();
     int p_row = s_label->get_row();
     // updates the label, label board, and string board //
@@ -132,9 +132,59 @@ void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
     piece_board[p_row][p_col] = nullptr;
     board[new_row][new_col] = board[p_row][p_col];
     board[p_row][p_col] = "";
+    // Pawn Mechancis (en passant and promotion, calls pawn_mechanics function //
+    if (p->get_object()->get_piece_type().at(1) == 'P'){pawn_mechanics(p, p_row, p_col, new_row, new_col, capture);}
 
-    if (p->get_object()->get_piece_type().at(1) == 'P'){check_promotion(p, new_row, new_col);}
-    switch_turn(); // move always switches when piece moves //
+    // Castling mechanics //
+    if (p->get_object()->get_piece_type().at(1) == 'K'){ // right side castle check //
+        if (new_col - p_col > 1){
+            for (int c = new_col+1; c < 8; c++){
+                if (board[new_row][c].at(1) == 'R'){
+                    s_label = piece_label_board[new_row][c];
+                    move_piece(s_label, new_row, new_col-1, false);
+                }
+            }
+        }
+        else if (new_col - p_col < -1){ // left side castle check //
+            for (int c = new_col-1; c > 0; c--){
+                if (board[new_row][c].at(1) == 'R'){
+                    s_label = piece_label_board[new_row][c];
+                    move_piece(s_label, new_row, new_col+1, false);
+                }
+            }
+        }
+        else{
+            switch_turn(); // all uncastling moves switches turn //
+        }
+    }
+    else{ // doesnt switch turns when moves rook in castles //
+        switch_turn();
+    }
+}
+
+void chess_game::pawn_mechanics(PieceLabel* p, int old_row, int old_col, int row, int col, bool capture){
+        // Checks Pawn Promotion //
+    bool promote = false;
+    QString pawn_color = p->get_object()->get_piece_type().at(0);
+    QString selected_piececode;
+
+    if (pawn_color == 'w' && row == 0){
+        selected_piececode = "wQ";
+        promote = true;
+    }
+    else if (pawn_color == 'b' && row == 7){
+        selected_piececode = "bQ";
+        promote = true;
+    }
+    if (promote == true){
+        capture_piece(row, col);
+        make_piece_label(row, col, selected_piececode, tileSize, pieceImages);
+        board[row][col] = selected_piececode;
+    }
+        // Checks Enpeassant //
+    if (!capture && old_col != col){ // if moves diagonal without capture, adds the en passant capture //
+        capture_piece(old_row, col);
+    }
 }
 
 void chess_game::click_piece_action(PieceLabel* clicked_label){
@@ -149,36 +199,15 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
         }
     }
     else if (clicked_label->get_color() != white_turn && s_label != nullptr){ // clicked on enemy piece //
-        bool capture_piece = false;
         int r; int c;
         for (const auto& move : s_move_list) {
             // checks if piece that got clicked on is to be captured //
             if (move.first == clicked_row && move.second == clicked_col){
-                delete clicked_label;
-                move_piece(s_label, clicked_row, clicked_col);
+                capture_piece(clicked_row, clicked_col);
+                move_piece(s_label, clicked_row, clicked_col, true);
                 break;
             }
         }
-    }
-}
-
-void chess_game::check_promotion(PieceLabel* p, int row, int col){
-    bool promote = false;
-    QString pawn_color = p->get_object()->get_piece_type().at(0);
-    QString selected_piececode;
-
-    if (pawn_color == 'w' && row == 0){
-        selected_piececode = "wQ";
-        promote = true;
-    }
-    else if (pawn_color == 'b' && row == 7){
-        selected_piececode = "bQ";
-        promote = true;
-    }
-    if (promote == true){
-        delete p;
-        make_piece_label(row, col, selected_piececode, tileSize, pieceImages);
-        board[row][col] = selected_piececode;
     }
 }
 
@@ -186,7 +215,7 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
     if (s_label != nullptr){
         for (const auto& move : s_move_list) {
             if (tile == Tiles[move.first][move.second]){ // clicked on tile is in moveset //
-                move_piece(s_label, move.first, move.second);
+                move_piece(s_label, move.first, move.second, false);
                 return;
             }
             Tiles[move.first][move.second]->deselect();
@@ -195,6 +224,12 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
         s_label = nullptr;
     }
     else{ deselect_all(); }
+}
+
+void chess_game::capture_piece(int row, int col){
+    board[row][col] = "";
+    piece_board[row][col] = nullptr;
+    delete piece_label_board[row][col];
 }
 
 bool chess_game::check_if_in_check(){

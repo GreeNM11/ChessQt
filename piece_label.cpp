@@ -6,7 +6,9 @@ PieceLabel::PieceLabel(QWidget* parent, Piece* p_object, int col, int row)
 }
 
 PieceLabel::~PieceLabel(){
-    delete p_object;
+    if (p_object != nullptr){
+        delete p_object;
+    }
 }
 
 void PieceLabel::mousePressEvent(QMouseEvent* event) {

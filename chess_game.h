@@ -63,12 +63,13 @@ private:
     void select_piece(PieceLabel* clicked_label);
     void switch_turn();
 
-    void move_piece(PieceLabel* p, int new_row, int new_col);
+    void move_piece(PieceLabel* p, int new_row, int new_col, bool capture);
+    void pawn_mechanics(PieceLabel* p, int old_row, int old_col, int row, int col, bool capture);
 
     void click_piece_action(PieceLabel* clicked_label);
     void click_tile_action(ClickableTileLabel* tile);
+    void capture_piece(int row, int col);
 
-    void check_promotion(PieceLabel* p, int row, int col);
     bool check_if_in_check();
     bool check_if_checkmate();
 
