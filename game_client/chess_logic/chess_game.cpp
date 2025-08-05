@@ -11,8 +11,6 @@ Piece* chess_game::make_piece(QString pieceCode){
 
     if (pieceCode.at(1) == "K"){
         p = new King(w);
-        if (pieceCode.at(0) == "w"){white_king = dynamic_cast<King*>(p);}
-        else if (pieceCode.at(0) == "b") {black_king = dynamic_cast<King*>(p);}
     }
     else if (pieceCode.at(1) == "Q"){
         p = new Queen(w);
@@ -136,6 +134,7 @@ void chess_game::move_piece(PieceLabel* p, int new_row, int new_col, bool captur
     if (p->get_object()->get_piece_type().at(1) == 'P'){pawn_mechanics(p, p_row, p_col, new_row, new_col, capture);}
 
     // Castling mechanics //
+    // doesnt switch turns when need to castle rook //
     if (p->get_object()->get_piece_type().at(1) == 'K'){ // right side castle check //
         if (new_col - p_col > 1){
             for (int c = new_col+1; c < 8; c++){
@@ -157,7 +156,9 @@ void chess_game::move_piece(PieceLabel* p, int new_row, int new_col, bool captur
             switch_turn(); // all uncastling moves switches turn //
         }
     }
-    else{ // doesnt switch turns when moves rook in castles //
+    else{
+        // Emits string of 4 numbers which is which row/col to which row/col and the piece color to determine who moved //
+        emit player_move(QString::number(p_row) + QString::number(p_col) + QString::number(new_row) + QString::number(new_col), p->get_color());
         switch_turn();
     }
 }
@@ -234,11 +235,13 @@ void chess_game::capture_piece(int row, int col){
 
 bool chess_game::check_if_in_check(){
     block_move_list.clear();
-    if (white_turn && white_king != nullptr){
-        block_move_list = white_king->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
+    if (white_turn && white_king_label->get_object() != nullptr){
+        King* wK = dynamic_cast<King*>(white_king_label->get_object());
+        block_move_list = wK->is_in_check(white_king_label->get_row(), white_king_label->get_col(),board);
     }
-    else if (black_king != nullptr){
-        block_move_list = black_king->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
+    else if (black_king_label->get_object() != nullptr){
+        King* bK = dynamic_cast<King*>(black_king_label->get_object());
+        block_move_list = bK->is_in_check(black_king_label->get_row(), black_king_label->get_col(),board);
     }
     if (!block_move_list.empty()){
         if (block_move_list.at(0).first == -1){ // double check case or king guarding square //
@@ -311,7 +314,7 @@ void chess_game::setup_board(){
     }
 }
 
-chess_game::chess_game(QLabel* boardLabel, int time = 0, int increment = 0) : boardLabel(boardLabel), time(time), increment(increment){
+chess_game::chess_game(QLabel* boardLabel, int time = 0, int increment = 0, QObject* parent) : boardLabel(boardLabel), time(time), increment(increment), QObject(parent){
     setup_board(); // sets up starting board position //
 }
 

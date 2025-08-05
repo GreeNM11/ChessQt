@@ -3,11 +3,14 @@
 
 Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)), clientSocket(nullptr) {
     connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
+}
 
+void Server::emitServerStatus(){
     if (!server->listen(QHostAddress::Any, 1234)) {
-        qDebug() << "Server failed to start!";
-    } else {
-        qDebug() << "Server started on port 1234";
+        emit newMessage("Server failed to start");
+    }
+    else {
+        emit newMessage("Server Started at port 1234");
     }
 }
 
@@ -32,7 +35,7 @@ void Server::onNewConnection() {
                 //game->applyMove(from, to);
             }
         } else {
-            qDebug() << "Invalid JSON received:" << parseError.errorString();
+            qDebug() << '1';
         }
     });
 }
@@ -43,15 +46,12 @@ void Server::onReadyRead() {
 
     if (!doc.isNull() && doc.isObject()) {
         QJsonObject json = doc.object();
-        qDebug() << "Received JSON from client:" << json;
-
-        // Example: echo back the same board to the client
+        emit newMessage( "Received JSON from client:"" << json;");
         sendBoardState(json);
     } else {
-        qDebug() << "Invalid JSON received:" << data;
+        emit newMessage("Invalid JSON received");
     }
 }
-
 void Server::sendBoardState(const QJsonObject &boardState) {
     if (clientSocket && clientSocket->isOpen()) {
         QJsonDocument doc(boardState);

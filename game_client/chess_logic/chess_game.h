@@ -9,9 +9,9 @@
 namespace Ui {class ChessQt;}
 
 class chess_game : public QObject{
-
+    Q_OBJECT
 public:
-    chess_game(QLabel* boardLabel, int time, int increment);
+    chess_game(QLabel* boardLabel, int time, int increment, QObject* parent = nullptr);
     ~chess_game();
 
 private:
@@ -50,8 +50,7 @@ private:
 
     PieceLabel* white_king_label;
     PieceLabel* black_king_label;
-    King* white_king;
-    King* black_king;
+
     std::vector<std::pair<int,int>> block_move_list = {}; // movelist that get player out of check //
 
     int in_check; // 0 is no, 1 is check, 2 is double check //
@@ -76,6 +75,9 @@ private:
     bool check_if_checkmate();
 
     void setup_board();
+
+signals:
+    void player_move(const QString &move, const bool isWhite);
 };
 
 #endif // CHESS_GAME_H

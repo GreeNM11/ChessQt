@@ -11,14 +11,22 @@ class Client : public QObject {
 
 public:
     explicit Client(QObject *parent = nullptr);
-    void sendMove(const QString &from, const QString &to);
+
+public slots:
+    void sendMove(const QString &move, const bool isWhite);
 
 private slots:
-    void onConnected();
+    void onConnect();
+    void onDisconnect();
     void onReadyRead();
 
 private:
     QTcpSocket *socket;
+    bool isWhite;
+
+signals:
+    void connectedToServer();
+    void disconnectedToServer();
 };
 
 #endif // CLIENT_H

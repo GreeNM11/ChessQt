@@ -14,6 +14,8 @@ public:
     explicit Server(QObject *parent = nullptr);
     void sendBoardState(const QJsonObject &boardState);
 
+    void emitServerStatus();
+
 private slots:
     void onNewConnection();
     void onReadyRead();
@@ -21,6 +23,9 @@ private slots:
 private:
     QTcpServer *server;
     QTcpSocket *clientSocket;
+
+signals:
+    void newMessage(const QString &msg);
 };
 
 #endif // SERVER_H
