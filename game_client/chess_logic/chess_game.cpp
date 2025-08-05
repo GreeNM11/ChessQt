@@ -262,13 +262,13 @@ bool chess_game::check_if_checkmate(){
 }
 
 void chess_game::setup_board(){
-    // Load the board image from resources and set it on labelBoard
+    // Load the board image from resources and set it on labelBoard //
     QPixmap boardPixmap(":/images/board.png");
     boardLabel->setFixedSize(640, 640);
     boardLabel->setPixmap(boardPixmap);
-    boardLabel->setFixedSize(boardPixmap.size());  // Fix size to board size
+    boardLabel->setFixedSize(boardPixmap.size());  // Fix size to board size //
 
-    // Load the sprite sheet for pieces
+    // Load the sprite sheet for pieces //
     QPixmap sprite(":/images/pieces.png");
 
     // Creates the pieces spirtes from the pieces png //

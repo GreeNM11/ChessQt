@@ -6,7 +6,7 @@
 #include "game_client/chess_ui/piece_label.h"
 #include "game_client/chess_ui/clickable_tile_label.h"
 
-namespace Ui {class MainWindow;}
+namespace Ui {class ChessQt;}
 
 class chess_game : public QObject{
 
