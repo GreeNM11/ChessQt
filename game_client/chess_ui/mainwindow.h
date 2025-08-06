@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include "game_server/server.h"
-#include "game_client/client.h"
+
 
 #include "game_client/chess_logic/chess_game.h"
 
@@ -17,10 +17,18 @@ private:
     std::unique_ptr<Server> server;
     std::unique_ptr<chess_game> game;
 
+    QString gameID;
+    Client* opponent;
+
+    void setOpponent(Client* opponent);
+
 private slots:
     // Client Function Slots //
     void onClientConnected();
     void onClientDisconnected();
+    void receiveOpponent(Client* opponent);
+    void onInvalidJoinCode();
+    void onPlayerMove(const QString &move, const bool isWhite);
 
     // Server Function Slots //
     void ServerMessage(const QString &msg);

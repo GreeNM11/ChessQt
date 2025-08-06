@@ -1,10 +1,9 @@
 #include "server.h"
 #include <QDebug>
 
-Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)), clientSocket(nullptr) {
+Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)) {
     connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
 }
-
 void Server::emitServerStatus(){
     if (!server->listen(QHostAddress::Any, 1234)) {
         emit newMessage("Server failed to start");
@@ -15,47 +14,34 @@ void Server::emitServerStatus(){
 }
 
 void Server::onNewConnection() {
-    QTcpSocket* clientSocket = server->nextPendingConnection();
+    QTcpSocket* clientSocket = server->nextPendingConnection(); // gets the client that wanted to connect //
+    QString clientID = QUuid::createUuid().toString();
+    clientSockets.insert(clientID, clientSocket);
 
-    connect(clientSocket, &QTcpSocket::readyRead, this, [=]() {
-        QByteArray data = clientSocket->readAll();
-        QJsonParseError parseError;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
-
-        if (parseError.error == QJsonParseError::NoError && doc.isObject()) {
-            QJsonObject obj = doc.object();
-
-            QString type = obj["type"].toString();
-            if (type == "move") {
-                QString from = obj["from"].toString();
-                QString to = obj["to"].toString();
-
-                qDebug() << "Move received from client:" << from << "->" << to;
-                // Now you can call your server-side chess logic
-                //game->applyMove(from, to);
-            }
-        } else {
-            qDebug() << '1';
-        }
-    });
+    QString clientInfo = clientSocket->peerAddress().toString() + "|" + QString::number(clientSocket->peerPort());
+    emit newMessage("Client Connected: " + clientInfo);
 }
 
-void Server::onReadyRead() {
-    QByteArray data = clientSocket->readAll();
-    QJsonDocument doc = QJsonDocument::fromJson(data);
+void Server::newGameSession(Client* client, bool isWhite){
+    QString gameID = QUuid::createUuid().toString(QUuid::WithoutBraces).mid(0, 4);
+    GameSession* newSession = new GameSession;
+    newSession->gameId = gameID;
+    newSession->p1_isWhite = isWhite;
+    newSession->player1 = client;
+    newSession->player2 = nullptr;
 
-    if (!doc.isNull() && doc.isObject()) {
-        QJsonObject json = doc.object();
-        emit newMessage( "Received JSON from client:"" << json;");
-        sendBoardState(json);
-    } else {
-        emit newMessage("Invalid JSON received");
+    activeSessions.insert(gameID, newSession);
+    emit newMessage("Created new game session ID: " + gameID);
+}
+
+void Server::joinGameSession(Client* client, QString gameID){
+    if (activeSessions.contains(gameID)){
+        GameSession* session = activeSessions.value(gameID);
+        session->player2 = client;
+        session->player2->receiveOponent(session->player1);
+        session->player1->receiveOponent(session->player2);
     }
-}
-void Server::sendBoardState(const QJsonObject &boardState) {
-    if (clientSocket && clientSocket->isOpen()) {
-        QJsonDocument doc(boardState);
-        clientSocket->write(doc.toJson(QJsonDocument::Compact));
-        clientSocket->flush();
+    else{
+        client->invalidJoinCode();
     }
 }

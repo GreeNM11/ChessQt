@@ -11,22 +11,28 @@ class Client : public QObject {
 
 public:
     explicit Client(QObject *parent = nullptr);
+    //
+    void createGameSession(bool isWhite);
+    void receiveOponent(Client* client);
+    void invalidJoinCode();
 
-public slots:
+    // Through socket //
+    void requestGameSession(bool isWhite);
     void sendMove(const QString &move, const bool isWhite);
 
 private slots:
     void onConnect();
     void onDisconnect();
-    void onReadyRead();
 
 private:
     QTcpSocket *socket;
-    bool isWhite;
 
 signals:
+    // Client to MainWindow //
     void connectedToServer();
     void disconnectedToServer();
+    void sendOpponent(Client* opponent);
+    void sendInvalidJoinCode();
 };
 
 #endif // CLIENT_H
