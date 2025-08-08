@@ -8,10 +8,13 @@ void MainWindow::SingleplayerClicked() {
 }
 
 void MainWindow::MultiplayerClicked() {
-    ui->mainStack->setCurrentWidget(ui->boardPage);
-    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1);
+    onClientMessage("Multiplayer Game Started");
+
+    ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
+    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
+
     connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
-    client->createGameSession(true);
+    client->createGameSession(true); // sends to client < clientWrap < Server to make a game session //
 }
 void MainWindow::onClientConnected() {
     ui->ClientStatus->clear();
@@ -22,15 +25,20 @@ void MainWindow::onClientDisconnected() {
     ui->ClientStatus->append("<span style='color:red;'>Server Status: Disconnected</span>");
 }
 
-void MainWindow::receiveOpponent(Client* o){ opponent = o; }
-void MainWindow::onInvalidJoinCode(){ qDebug() << "invalid"; }
-
 // Receives from chess_game, now sends to client //
-void MainWindow::onPlayerMove(const QString &move, const bool isWhite){ client->sendMove(move, isWhite); }
+void MainWindow::onPlayerMove(const QString &move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
+
+void MainWindow::onClientMessage(const QString msg){
+    ui->boardChat->append(msg);  // adds message and a newline //
+
+    QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
+    cursor.movePosition(QTextCursor::End);
+    ui->ServerLog->setTextCursor(cursor);
+}
 
 ///-------------------------------------- Server UI --------------------------------------///
 
-void MainWindow::ServerMessage(const QString &message) {
+void MainWindow::ServerMessage(const QString message) {
     ui->ServerLog->append(message);  // adds message and a newline //
 
     QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
@@ -41,7 +49,9 @@ void MainWindow::ServerMessage(const QString &message) {
 ///-------------------------------------- Main Window --------------------------------------///
 MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , ui(new Ui::ChessQt){
     ui->setupUi(this);
-    if (isServer == false){ // Start Client //
+
+    /////////////////////   Client   /////////////////////
+    if (isServer == false){
         client = std::make_unique<Client>(this);
 
         // UI Network Setup //
@@ -51,11 +61,11 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
 
         // Client Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected);
-        connect(client.get(), &Client::sendOpponent, this, &MainWindow::receiveOpponent);
-        connect(client.get(), &Client::sendInvalidJoinCode, this, &MainWindow::onInvalidJoinCode);
+        connect(client.get(), &Client::clientMessage, this, &MainWindow::onClientMessage);
 
     }
-    else{ // Start Server //
+    //////////////////////   Server   /////////////////////
+    else{
         ui->mainStack->setCurrentWidget(ui->serverPage);
         server = std::make_unique<Server>(this);
 

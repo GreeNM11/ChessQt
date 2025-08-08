@@ -3,7 +3,7 @@
 
 #include "game_server/server.h"
 
-
+#include "game_client/client.h"
 #include "game_client/chess_logic/chess_game.h"
 
 class MainWindow : public QMainWindow{
@@ -18,20 +18,19 @@ private:
     std::unique_ptr<chess_game> game;
 
     QString gameID;
-    Client* opponent;
+    QString* opponentID;
 
-    void setOpponent(Client* opponent);
+    // Functions Sent to Client //
+    void onPlayerMove(const QString &move, const bool isWhite);
 
 private slots:
     // Client Function Slots //
+    void onClientMessage(QString msg);
     void onClientConnected();
     void onClientDisconnected();
-    void receiveOpponent(Client* opponent);
-    void onInvalidJoinCode();
-    void onPlayerMove(const QString &move, const bool isWhite);
 
     // Server Function Slots //
-    void ServerMessage(const QString &msg);
+    void ServerMessage(const QString msg);
 
     // Buttons //
     void SingleplayerClicked();

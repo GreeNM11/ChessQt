@@ -11,21 +11,23 @@ Client::Client(QObject *parent) : QObject(parent) {
 void Client::onConnect() { emit connectedToServer(); }
 void Client::onDisconnect() { emit disconnectedToServer(); }
 
-void Client::requestGameSession(bool isWhite){
-    // send through socket //
-}
-void sendMove(const QString &move, const bool isWhite){
-    // send through socket //
+void Client::sendMessage(const QString &message) {
+    // send to server clientwrap through socket //
+    if (socket && socket->state() == QAbstractSocket::ConnectedState) {
+        QByteArray data = message.toUtf8();
+        socket->write(data);
+        socket->flush();
+    } else {
+    }
 }
 
-
-void Client::receiveOponent(Client* client){
-     // send through socket //
-    emit sendOpponent(client);
+void Client::createGameSession(bool isWhite){
+    QString data = "CREATE_GAME|" + QString(isWhite ? "1" : "0") + "\n";
+    sendMessage(data);
 }
-void Client::invalidJoinCode(){
-     // send through socket //
-    emit sendInvalidJoinCode();
+void Client::sendMove(const QString gameID, const QString &move, const bool isWhite){
+    QString data = "MOVE|" + gameID+ "|" + move +  "|" + QString::number(isWhite) + "\n";
+    sendMessage(data);
 }
 
 

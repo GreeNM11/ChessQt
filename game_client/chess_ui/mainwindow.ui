@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1000</width>
     <height>840</height>
    </rect>
   </property>
@@ -22,9 +22,12 @@
      <rect>
       <x>40</x>
       <y>20</y>
-      <width>640</width>
+      <width>1000</width>
       <height>640</height>
      </rect>
+    </property>
+    <property name="currentIndex">
+     <number>2</number>
     </property>
     <widget class="QWidget" name="serverPage">
      <widget class="QTextEdit" name="ServerTitle">
@@ -169,6 +172,19 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <string>TextLabel</string>
       </property>
      </widget>
+     <widget class="QTextEdit" name="boardChat">
+      <property name="geometry">
+       <rect>
+        <x>700</x>
+        <y>20</y>
+        <width>200</width>
+        <height>600</height>
+       </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -177,7 +193,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1000</width>
      <height>17</height>
     </rect>
    </property>

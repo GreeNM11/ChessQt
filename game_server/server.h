@@ -7,7 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include "game_client/client.h"
+#include "clientwrap.h"
 
 class Server : public QObject {
     Q_OBJECT
@@ -19,22 +19,26 @@ public:
 
 private slots:
     void onNewConnection();
+    void clientDisconnect(ClientWrap* client);
 
-    void newGameSession(Client* client, bool isWhite);
-    void joinGameSession(Client* client, QString gameID);
+    void newGameSession(ClientWrap* client, bool isWhite);
+    void joinGameSession(ClientWrap* client, QString gameID);
+
+    void moveReceived(QString gameID, QString move, bool isWhite);
 
 private:
     QTcpServer *server;
+    void serverMessage(QString msg);
 
     struct GameSession {
-        QString gameId;
-        bool p1_isWhite;
-        Client* player1 = nullptr;
-        Client* player2 = nullptr;
+        QString gameID;
+        bool isWhite; // if player1 is white //
+        ClientWrap* player1 = nullptr;
+        ClientWrap* player2 = nullptr;
     };
 
     QHash<QString, GameSession*> activeSessions;
-    QHash<QString, QTcpSocket*> clientSockets; // need to make a class //
+    QHash<QString, ClientWrap*> clientConnected; // need to make a class //
 
 signals:
     void newMessage(const QString &msg);
