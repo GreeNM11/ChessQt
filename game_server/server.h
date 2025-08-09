@@ -38,7 +38,7 @@ private:
     };
 
     QHash<QString, GameSession*> activeSessions;
-    QHash<QString, ClientWrap*> clientConnected; // need to make a class //
+    QHash<QString, ClientWrap*> clientConnected;
 
 signals:
     void newMessage(const QString &msg);

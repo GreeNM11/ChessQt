@@ -7,15 +7,26 @@ void MainWindow::SingleplayerClicked() {
     game = std::make_unique<chess_game>(ui->labelBoard, 10, 1);
 }
 
-void MainWindow::MultiplayerClicked() {
-    onClientMessage("Multiplayer Game Started");
-
+void MainWindow::hostGameClicked() {
+    onClientMessage("Hosting Game..");
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
-    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
 
+    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
     connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
+
     client->createGameSession(true); // sends to client < clientWrap < Server to make a game session //
 }
+
+void MainWindow::joinGameClicked() {
+    ui->mainStack->setCurrentWidget(ui->joinGamePage); // sets ui //
+
+    connect(ui->joinGameEnter, &QLineEdit::returnPressed, this, [this]() {
+        gameID = ui->joinGameEnter->text();
+        ui->joinGameEnter->clear();
+        client->joinGameSession(gameID);
+    });
+}
+
 void MainWindow::onClientConnected() {
     ui->ClientStatus->clear();
     ui->ClientStatus->append("<span style='color:green;'>Server Status: Connected</span>");
@@ -23,6 +34,23 @@ void MainWindow::onClientConnected() {
 void MainWindow::onClientDisconnected() {
     ui->ClientStatus->clear();
     ui->ClientStatus->append("<span style='color:red;'>Server Status: Disconnected</span>");
+}
+
+void MainWindow::onCreateGameSession(QString ID){
+    gameID = ID;
+    onClientMessage("Game Session ID: " + gameID);
+}
+void MainWindow::onJoinGameSession(bool joined, bool isWhite){
+    if (joined){
+        onClientMessage("Joining Game..");
+        ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
+
+        game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
+        connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
+    }
+    else{
+        onClientMessage("Retry Join Code");
+    }
 }
 
 // Receives from chess_game, now sends to client //
@@ -57,11 +85,15 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
         // UI Network Setup //
         ui->mainStack->setCurrentWidget(ui->menuPage);
         connect(ui->SingleplayerButton, &QPushButton::clicked, this, &MainWindow::SingleplayerClicked);
-        connect(ui->MultiplayerButton, &QPushButton::clicked, this, &MainWindow::MultiplayerClicked);
+        connect(ui->HostGameButton, &QPushButton::clicked, this, &MainWindow::hostGameClicked);
+        connect(ui->JoinGameButton, &QPushButton::clicked, this, &MainWindow::joinGameClicked);
 
         // Client Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected);
         connect(client.get(), &Client::clientMessage, this, &MainWindow::onClientMessage);
+
+        connect(client.get(), &Client::createGameSession_S, this, &MainWindow::onCreateGameSession);
+        connect(client.get(), &Client::joinGameSession_S, this, &MainWindow::onJoinGameSession);
 
     }
     //////////////////////   Server   /////////////////////

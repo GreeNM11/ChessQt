@@ -16,6 +16,7 @@ QTcpSocket* ClientWrap::getSocket() const { return socket; }
 
 void ClientWrap::onDisconnect() { emit clientDisconnect(this); }
 
+// ---------------------- Received from Client + MainWindow --------------------- //
 void ClientWrap::onReadyRead() {
     while (socket->canReadLine()) {
         QString line = socket->readLine().trimmed();
@@ -23,29 +24,39 @@ void ClientWrap::onReadyRead() {
     }
 }
 
+void ClientWrap::receiveMessage(const QString& msg) {
+    QStringList parts = msg.split("|");
+    if (parts[0] == "CREATE_GAME" && parts.size() >= 2) {
+        emit createGameSession(this, parts[1] == '1'); // clientwrap, isWhite //
+    }
+    else if (parts[0] == "JOIN_GAME" && parts.size() >= 2) {
+        emit joinGameSession(this, parts[1]); // clientwrap, join code //
+    }
+    else if (parts[0] == "SEND_MOVE" && parts.size() >= 3) {
+        emit moveReceived(parts[1], parts[2], (parts[3] == '1')); // gameID, move, isWhite //
+    }
+    else {
+        emit serverMessage("Unknown Message sent");
+    }
+}
+
+// ---------------------- Senders to Local Client + MainWindow ---------------------- //
 void ClientWrap::sendMessage(const QString& message) {
     // send through socket back to client //
     if (socket && socket->state() == QAbstractSocket::ConnectedState) {
         QByteArray data = message.toUtf8();  // convert string to bytes
         socket->write(data);
         socket->flush();
-    } else {
-        qDebug() << "Socket is not connected.";
     }
-
 }
 
-void ClientWrap::receiveMessage(const QString& msg) {
-    QStringList parts = msg.split("|");
-
-    if (parts[0] == "CREATE_SESSION" && parts.size() >= 2) {
-        emit requestGameCreation(this, parts[1] == '1'); // color
-    }
-    else if (parts[0] == "MOVE" && parts.size() >= 3) {
-        emit moveReceived(parts[1], parts[2], (parts[3] == '1')); // game ID, move, isWhite
-    }
-    else {
-        qDebug() << "Unknown or malformed message:" << msg;
-    }
+void ClientWrap::createGameSession_S(QString gameID){
+    sendMessage("CREATE_GAME_S|" + gameID + "\n");
+}
+void ClientWrap::joinGameSession_S(bool gameFound, bool isWhite){
+    sendMessage("JOIN_GAME_S|" + QString(gameFound ? "1" : "0") + "|" + QString(isWhite ? "1" : "0") + "\n");
+}
+void ClientWrap::sendMove_S(QString move){
+    sendMessage("SEND_MOVE_S|" + move + "\n");
 }
 

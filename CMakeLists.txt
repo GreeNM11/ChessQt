@@ -17,12 +17,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
-set(UI_FILES
-    game_client/chess_ui/mainwindow.ui
-)
-
 # Source files
 set(PROJECT_SOURCES
+    game_client/chess_ui/mainwindow.ui
     main.cpp
 
     game_client/chess_ui/mainwindow.cpp
@@ -52,6 +49,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ChessQt
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        game_server/clientwrap.h game_server/clientwrap.cpp
     )
 else()
     add_executable(ChessQt

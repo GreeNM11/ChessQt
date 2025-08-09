@@ -15,13 +15,19 @@ public:
     QString getID() const;
     QTcpSocket* getSocket() const;
 
-    void sendMessage(const QString& message);
+    void sendMessage(const QString& message); // sends message to server ui //
+
+    // _S Sends information back through socket //
+    void createGameSession_S(QString gameID);
+    void joinGameSession_S(bool gameFound, bool isWhite);
+    void sendMove_S(QString move);
 
 signals:
     void serverMessage(QString msg);
     void clientDisconnect(ClientWrap* client);
 
-    void requestGameCreation(ClientWrap* client, bool isWhite); // asks server to make game session //
+    void createGameSession(ClientWrap* client, bool isWhite); // asks server to make game session //
+    void joinGameSession(ClientWrap* client, QString joinCode); // asks server for client to join existing game //
     void moveReceived(QString gameID, QString move, bool isWhite); // sends received move to server //
 
 private slots:

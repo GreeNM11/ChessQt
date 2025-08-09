@@ -29,12 +29,16 @@ private slots:
     void onClientConnected();
     void onClientDisconnected();
 
+    void onCreateGameSession(QString gameID);
+    void onJoinGameSession(bool joined, bool isWhite);
+
     // Server Function Slots //
     void ServerMessage(const QString msg);
 
     // Buttons //
     void SingleplayerClicked();
-    void MultiplayerClicked();
+    void hostGameClicked();
+    void joinGameClicked();
 
 };
 
