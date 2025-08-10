@@ -21,6 +21,10 @@ private:
     QString* opponentID;
     bool isWhite;
 
+    QString playerName;
+
+    void createGamePage(bool isWhite);
+
 private slots:
     void ClientMessage(const QString msg);
 
@@ -35,6 +39,7 @@ private slots:
     void onJoinGameSession(bool joined, bool isWhite);
 
     void onReceiveMove(QString move);
+    void onPlayerMessage(QString playerName, QString msg);
 
     // Server Function Slots //
     void ServerMessage(const QString msg);

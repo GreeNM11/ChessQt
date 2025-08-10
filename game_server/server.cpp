@@ -23,7 +23,9 @@ void Server::onNewConnection() {
     connect(client, &ClientWrap::clientDisconnect, this, &Server::clientDisconnect);
     connect(client, &ClientWrap::createGameSession, this, &Server::newGameSession);
     connect(client, &ClientWrap::joinGameSession, this, &Server::joinGameSession);
+
     connect(client, &ClientWrap::moveReceived, this, &Server::moveReceived);
+    connect(client, &ClientWrap::playerMessageReceived, this, &Server::playerMessageReceived);
 
     QString clientInfo = clientSocket->peerAddress().toString() + "|" + QString::number(clientSocket->peerPort());
     serverMessage("Client Connected: " + clientInfo);
@@ -67,3 +69,18 @@ void Server::moveReceived(QString gameID, bool isWhite, QString move){
         session->player1->sendMove_S(move);
     }
 }
+
+void Server::playerMessageReceived(QString gameID, QString playerName, QString msg){
+    GameSession* session = activeSessions.value(gameID);
+    session->player1->sendPlayerMessage_S(playerName, msg); // sends to both players so message only shows if received by server //
+    session->player2->sendPlayerMessage_S(playerName, msg);
+}
+
+
+
+
+
+
+
+
+

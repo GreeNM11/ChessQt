@@ -17,10 +17,11 @@ public:
 
     void sendMessage(const QString& message); // sends message to server ui //
 
-    // _S Sends information back through socket //
+    // _S Sends information back through socket to local //
     void createGameSession_S(QString gameID);
     void joinGameSession_S(bool gameFound, bool isWhite);
     void sendMove_S(QString move);
+    void sendPlayerMessage_S(QString playerName, QString msg);
 
 signals:
     void serverMessage(QString msg);
@@ -29,6 +30,7 @@ signals:
     void createGameSession(ClientWrap* client, bool isWhite); // asks server to make game session //
     void joinGameSession(ClientWrap* client, QString joinCode); // asks server for client to join existing game //
     void moveReceived(QString gameID,  bool isWhite, QString move); // sends received move to server //
+    void playerMessageReceived(QString gameID, QString playerName, QString msg);
 
 private slots:
     void onReadyRead();

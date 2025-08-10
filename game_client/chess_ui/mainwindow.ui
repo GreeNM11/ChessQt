@@ -27,7 +27,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="serverPage">
      <widget class="QTextEdit" name="ServerTitle">
@@ -247,6 +247,19 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <string>TextLabel</string>
       </property>
      </widget>
+     <widget class="QLineEdit" name="gameChatEnter">
+      <property name="geometry">
+       <rect>
+        <x>750</x>
+        <y>610</y>
+        <width>200</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="placeholderText">
+       <string>Type to Chat</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QTextEdit" name="boardChat">
@@ -255,7 +268,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <x>790</x>
       <y>40</y>
       <width>200</width>
-      <height>600</height>
+      <height>580</height>
      </rect>
     </property>
     <property name="readOnly">

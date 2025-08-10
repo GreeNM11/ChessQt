@@ -31,6 +31,9 @@ void Client::receiveMessage(const QString& msg) {
     else if (parts[0] == "SEND_MOVE_S" && parts.size() >= 2) {
         emit sendMove_S(parts[1]);
     }
+    else if (parts[0] == "SEND_PLAYER_MESSAGE_S" && parts.size() >= 3) {
+        emit sendPlayerMessage_S(parts[1], parts[2]);
+    }
     else{
         emit clientMessage("Received Error Message from Server: " + msg);
     }
@@ -54,6 +57,9 @@ void Client::joinGameSession(const QString gameID){
 void Client::sendMove(const QString gameID, const QString move, const bool isWhite){
     // needs a space before | because it breaks without it //
     sendMessage("SEND_MOVE|" + gameID + "|" + QString::number(isWhite) + " |" + move + "\n");
+}
+void Client::sendPlayerMessage(QString gameID, const QString playerName, const QString msg){
+    sendMessage("SEND_PLAYER_MESSAGE|" + gameID + "|" + playerName + "|" + msg + "\n");
 }
 
 
