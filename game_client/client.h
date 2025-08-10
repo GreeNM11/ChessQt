@@ -15,7 +15,7 @@ public:
     // Send Through Socket //
     void createGameSession(bool isWhite);
     void joinGameSession(const QString gameIDe);
-    void sendMove(const QString gameID, const QString &move, const bool isWhite);
+    void sendMove(const QString gameID, const QString move, const bool isWhite);
 
     // Receive Through Socket //
     void receiveMessage(const QString& msg);
@@ -39,7 +39,7 @@ signals:
     // _S means feedback from server //
     void createGameSession_S(QString gameID);
     void joinGameSession_S(bool gameJoined, bool isWhite);
-    void move_S(bool moveRecieved);
+    void sendMove_S(QString move);
 };
 
 #endif // CLIENT_H

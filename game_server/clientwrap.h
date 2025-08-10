@@ -28,7 +28,7 @@ signals:
 
     void createGameSession(ClientWrap* client, bool isWhite); // asks server to make game session //
     void joinGameSession(ClientWrap* client, QString joinCode); // asks server for client to join existing game //
-    void moveReceived(QString gameID, QString move, bool isWhite); // sends received move to server //
+    void moveReceived(QString gameID,  bool isWhite, QString move); // sends received move to server //
 
 private slots:
     void onReadyRead();

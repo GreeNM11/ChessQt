@@ -1,22 +1,34 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-///-------------------------------------- Client UI  --------------------------------------///
+///-------------------------------------- Client Functions  --------------------------------------///
+void MainWindow::ClientMessage(const QString msg){
+    ui->boardChat->append(msg);  // adds message and a newline //
+
+    QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
+    cursor.movePosition(QTextCursor::End);
+    ui->ServerLog->setTextCursor(cursor);
+}
+
 void MainWindow::SingleplayerClicked() {
     ui->mainStack->setCurrentWidget(ui->boardPage);
-    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1);
-}
 
+    isWhite = true;
+    game = std::make_unique<chess_game>(ui->labelBoard, isWhite, 10, 1);
+}
 void MainWindow::hostGameClicked() {
-    onClientMessage("Hosting Game..");
+    QString color = isWhite ? "White" : "Black";
+    ClientMessage("Hosting Game.. You are: " + color);
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
 
-    game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
+    isWhite = true; // will asks for it later
+
+    game = std::make_unique<chess_game>(ui->labelBoard, isWhite, 10, 1); // creates game + loads board //
     connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
+    connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
 
-    client->createGameSession(true); // sends to client < clientWrap < Server to make a game session //
+    client->createGameSession(isWhite); // sends to client < clientWrap < Server to make a game session //
 }
-
 void MainWindow::joinGameClicked() {
     ui->mainStack->setCurrentWidget(ui->joinGamePage); // sets ui //
 
@@ -38,31 +50,28 @@ void MainWindow::onClientDisconnected() {
 
 void MainWindow::onCreateGameSession(QString ID){
     gameID = ID;
-    onClientMessage("Game Session ID: " + gameID);
+    ClientMessage("Created Game Session. ID: " + gameID);
 }
-void MainWindow::onJoinGameSession(bool joined, bool isWhite){
+void MainWindow::onJoinGameSession(bool joined, bool isWhite_S){
     if (joined){
-        onClientMessage("Joining Game..");
+        QString color = isWhite_S ? "White" : "Black";
+        ClientMessage("Joining Game.. You are " + color);
+        isWhite = isWhite_S;
         ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
 
-        game = std::make_unique<chess_game>(ui->labelBoard, 10, 1); // creates game + loads board //
+        game = std::make_unique<chess_game>(ui->labelBoard, isWhite, 10, 1); // creates game + loads board //
         connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
+        connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
     }
     else{
-        onClientMessage("Retry Join Code");
+        ClientMessage("Retry Join Code");
     }
 }
 
-// Receives from chess_game, now sends to client //
-void MainWindow::onPlayerMove(const QString &move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
+void MainWindow::onReceiveMove(QString move){ game->receiveMove(move); }
+///------------------------------------- MainWindow Slots  -------------------------------------///
 
-void MainWindow::onClientMessage(const QString msg){
-    ui->boardChat->append(msg);  // adds message and a newline //
-
-    QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
-    cursor.movePosition(QTextCursor::End);
-    ui->ServerLog->setTextCursor(cursor);
-}
+void MainWindow::onPlayerMove(const QString move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
 
 ///-------------------------------------- Server UI --------------------------------------///
 
@@ -82,7 +91,7 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
     if (isServer == false){
         client = std::make_unique<Client>(this);
 
-        // UI Network Setup //
+        // UI & Buttons Setup //
         ui->mainStack->setCurrentWidget(ui->menuPage);
         connect(ui->SingleplayerButton, &QPushButton::clicked, this, &MainWindow::SingleplayerClicked);
         connect(ui->HostGameButton, &QPushButton::clicked, this, &MainWindow::hostGameClicked);
@@ -90,10 +99,12 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
 
         // Client Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected);
-        connect(client.get(), &Client::clientMessage, this, &MainWindow::onClientMessage);
+        connect(client.get(), &Client::clientMessage, this, &MainWindow::ClientMessage);
 
         connect(client.get(), &Client::createGameSession_S, this, &MainWindow::onCreateGameSession);
         connect(client.get(), &Client::joinGameSession_S, this, &MainWindow::onJoinGameSession);
+
+        connect(client.get(), &Client::sendMove_S, this, &MainWindow::onReceiveMove);
 
     }
     //////////////////////   Server   /////////////////////

@@ -24,7 +24,7 @@ private slots:
     void newGameSession(ClientWrap* client, bool isWhite);
     void joinGameSession(ClientWrap* client, QString gameID);
 
-    void moveReceived(QString gameID, QString move, bool isWhite);
+    void moveReceived(QString gameID,  bool isWhite, QString move);
 
 private:
     QTcpServer *server;

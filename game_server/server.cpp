@@ -58,8 +58,7 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
     }
 }
 
-void Server::moveReceived(QString gameID, QString move, bool isWhite){
-    serverMessage("Move Received: " + QString((isWhite ? "White - " : "Black - ")) + move);
+void Server::moveReceived(QString gameID, bool isWhite, QString move){
     GameSession* session = activeSessions.value(gameID);
     if (isWhite){
         session->player2->sendMove_S(move);

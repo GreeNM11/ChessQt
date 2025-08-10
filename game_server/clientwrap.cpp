@@ -25,6 +25,7 @@ void ClientWrap::onReadyRead() {
 }
 
 void ClientWrap::receiveMessage(const QString& msg) {
+    if (msg == ""){ return; }
     QStringList parts = msg.split("|");
     if (parts[0] == "CREATE_GAME" && parts.size() >= 2) {
         emit createGameSession(this, parts[1] == '1'); // clientwrap, isWhite //
@@ -32,11 +33,11 @@ void ClientWrap::receiveMessage(const QString& msg) {
     else if (parts[0] == "JOIN_GAME" && parts.size() >= 2) {
         emit joinGameSession(this, parts[1]); // clientwrap, join code //
     }
-    else if (parts[0] == "SEND_MOVE" && parts.size() >= 3) {
-        emit moveReceived(parts[1], parts[2], (parts[3] == '1')); // gameID, move, isWhite //
+    else if (parts[0] == "SEND_MOVE" && parts.size() >= 4) {
+        emit moveReceived(parts[1], (parts[2] == "1 "), parts[3]); // gameID, move, isWhite //
     }
     else {
-        emit serverMessage("Unknown Message sent");
+        emit serverMessage("Unknown Message received");
     }
 }
 

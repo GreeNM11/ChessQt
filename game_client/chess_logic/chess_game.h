@@ -11,16 +11,21 @@ namespace Ui {class ChessQt;}
 class chess_game : public QObject{
     Q_OBJECT
 public:
-    chess_game(QLabel* boardLabel, int time, int increment, QObject* parent = nullptr);
+    chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, QObject* parent = nullptr);
     ~chess_game();
+
+    void receiveMove(QString move);
 
 private:
     const int pieceWidth = 80;
     const int pieceHeight = 80;
     const int tileSize = 80;
 
+    // Player Variables //
     int time;
     int increment;
+    bool isWhite;
+    bool white_turn = true;
 
     // Board Variables //
     QLabel* boardLabel;
@@ -45,9 +50,7 @@ private:
     Piece* last_moved = nullptr; // keeps track of last move //
     std::vector<std::pair<int,int>> s_move_list = {}; // vector of selected piece's available moves
 
-    bool white_turn = true;
     PieceLabel* last_piece_moved;
-
     PieceLabel* white_king_label;
     PieceLabel* black_king_label;
 
@@ -62,9 +65,9 @@ private:
 
     void deselect_all();
     void select_piece(PieceLabel* clicked_label);
-    void switch_turn();
+    void switch_turn(QString sendMove);
 
-    void move_piece(PieceLabel* p, int new_row, int new_col, bool capture);
+    void move_piece(PieceLabel* p, int new_row, int new_col);
     void pawn_mechanics(PieceLabel* p, int old_row, int old_col, int row, int col, bool capture);
 
     void click_piece_action(PieceLabel* clicked_label);
@@ -77,7 +80,8 @@ private:
     void setup_board();
 
 signals:
-    void player_move(const QString &move, const bool isWhite);
+    void clientMessage(const QString msg);
+    void player_move(const QString move, const bool isWhite);
 };
 
 #endif // CHESS_GAME_H

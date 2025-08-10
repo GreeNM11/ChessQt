@@ -15,22 +15,26 @@ private:
     Ui::ChessQt* ui;
     std::unique_ptr<Client> client;
     std::unique_ptr<Server> server;
-    std::unique_ptr<chess_game> game;
 
+    std::unique_ptr<chess_game> game;
     QString gameID;
     QString* opponentID;
-
-    // Functions Sent to Client //
-    void onPlayerMove(const QString &move, const bool isWhite);
+    bool isWhite;
 
 private slots:
-    // Client Function Slots //
-    void onClientMessage(QString msg);
+    void ClientMessage(const QString msg);
+
+    // Received by Game //
+    void onPlayerMove(const QString move, const bool isWhite);
+
+    // Recieved by Client //
     void onClientConnected();
     void onClientDisconnected();
 
     void onCreateGameSession(QString gameID);
     void onJoinGameSession(bool joined, bool isWhite);
+
+    void onReceiveMove(QString move);
 
     // Server Function Slots //
     void ServerMessage(const QString msg);
