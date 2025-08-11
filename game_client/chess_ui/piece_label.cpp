@@ -30,7 +30,7 @@ void PieceLabel::deselect() {
 }
 
 void PieceLabel::set_capturable(){
-    setStyleSheet("background-color: rgba(120, 100, 100, 200);");
+    setStyleSheet("background-color: rgba(80, 80, 80, 120);");
 }
 
 void PieceLabel::move_piece(int r, int c, int tileSize){
@@ -40,7 +40,7 @@ void PieceLabel::move_piece(int r, int c, int tileSize){
 }
 
 void PieceLabel::check_king(){
-    setStyleSheet("background-color: rgba(100, 0, 0, 200);");
+    setStyleSheet("background-color: rgba(100, 0, 0, 120);");
     in_check = true;
 }
 void PieceLabel::remove_check(){

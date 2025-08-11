@@ -11,22 +11,22 @@ Piece* chess_game::make_piece(QString pieceCode){
     Piece* p;
 
     if (pieceCode.at(1) == "K"){
-        p = new King(w);
+        p = new King(w, isWhite);
     }
     else if (pieceCode.at(1) == "Q"){
-        p = new Queen(w);
+        p = new Queen(w, isWhite);
     }
     else if (pieceCode.at(1) == "R"){
-        p = new Rook(w);
+        p = new Rook(w, isWhite);
     }
     else if (pieceCode.at(1) == "B"){
-        p = new Bishop(w);
+        p = new Bishop(w, isWhite);
     }
     else if (pieceCode.at(1) == "N"){
-        p = new Knight(w);
+        p = new Knight(w, isWhite);
     }
     else if (pieceCode.at(1) == "P"){
-        p = new Pawn(w);
+        p = new Pawn(w, isWhite);
     }
 
     return p;
@@ -105,11 +105,7 @@ void chess_game::select_piece(PieceLabel* clicked_label){
 
 //----------------------------------- Handles Piece Movement -----------------------------------------//
 
-void chess_game::switch_turn(QString sendMove){
-    // Emits string of 4 numbers for piece move to server //
-    if (isWhite == white_turn){
-        emit player_move(sendMove, isWhite); }
-
+void chess_game::switch_turn(){
     last_moved = s_label->get_object(); // tracks enemies last move //
     deselect_all();
 
@@ -126,18 +122,23 @@ void chess_game::switch_turn(QString sendMove){
     else if (!white_turn && in_check){black_king_label->check_king();}
 }
 
-void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
-    int p_col = p->get_col();
+void chess_game::move_piece(PieceLabel* p, int new_row, int new_col, bool send){
     int p_row = p->get_row();
+    int p_col = p->get_col();
 
-    int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
-    QString move = QString::number(moveInt);
-    if (moveInt < 1000){ move = "0" + move; } // no 0 in front of int //
-
+    // removes piece if is capture //
     bool capture = false;
-    if (piece_label_board[new_row][new_col] != nullptr){ // removes piece if is capture //
+    if (piece_label_board[new_row][new_col] != nullptr){
         capture_piece(new_row, new_col);
         capture = true;
+    }
+
+    // Emits string of 4 numbers for piece move to server //
+    if (isWhite == white_turn && send){
+        int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
+        QString move = QString::number(moveInt);
+        if (moveInt < 1000){ move = "0" + move; } // no 0 in front of int //
+        emit player_move(move, isWhite);
     }
 
     // updates the label, label board, object board, and string board //
@@ -154,42 +155,42 @@ void chess_game::move_piece(PieceLabel* p, int new_row, int new_col){
     if (p->get_object()->get_piece_type().at(1) == 'P'){pawn_mechanics(p, p_row, p_col, new_row, new_col, capture);}
 
     // Castling mechanics //
-    // doesnt switch turns when need to castle rook //
     if (p->get_object()->get_piece_type().at(1) == 'K'){ // right side castle check //
         if (new_col - p_col > 1){
             for (int c = new_col+1; c < 8; c++){
                 if (board[new_row][c].at(1) == 'R'){
-                    move_piece(piece_label_board[new_row][c], new_row, new_col-1); // finds the right rook and castles it //
+                    // finds the right rook and castles it //
+                    move_piece(piece_label_board[new_row][c], new_row, new_col-1, false);
                 }
             }
         }
         else if (new_col - p_col < -1){ // left side castle check //
-            for (int c = new_col-1; c > 0; c--){
+            for (int c = new_col-1; c >= 0; c--){
                 if (board[new_row][c].at(1) == 'R'){
-                    move_piece(piece_label_board[new_row][c], new_row, new_col+1); // finds the left rook and castles it //
+                    // finds the left rook and castles it //
+                    move_piece(piece_label_board[new_row][c], new_row, new_col+1, false);
                 }
             }
         }
         else{
             // non-castling king moves switches turn //
-            switch_turn(move); // gives it 4 digit string //
+            switch_turn();
         }
     }
     else{
         // non king moves auto switch moves //
-        switch_turn(move);
+        switch_turn();
     }
 }
 
 void chess_game::receiveMove(QString move){
-    emit clientMessage("Received move: " + move);
     int from_row = move.at(0).digitValue();
     int from_col = move.at(1).digitValue();
     int to_row = move.at(2).digitValue();
     int to_col = move.at(3).digitValue();
-    s_label = piece_label_board[from_row][from_col];
+    s_label = piece_label_board[7 - from_row][7 - from_col]; // '7 -' to flip coordinates //
 
-    if (s_label != nullptr){ move_piece(s_label, to_row, to_col); }
+    if (s_label != nullptr){ move_piece(s_label, 7 - to_row, 7 - to_col, true); }
 }
 
 void chess_game::capture_piece(int row, int col){
@@ -242,7 +243,7 @@ void chess_game::click_piece_action(PieceLabel* clicked_label){
             for (const auto& move : s_move_list) {
                 // checks if piece that got clicked on is to be captured //
                 if (move.first == clicked_row && move.second == clicked_col){
-                    move_piece(s_label, clicked_row, clicked_col);
+                    move_piece(s_label, clicked_row, clicked_col, true);
                     break;
                 }
             }
@@ -254,7 +255,7 @@ void chess_game::click_tile_action(ClickableTileLabel* tile){
     if (s_label != nullptr){
         for (const auto& move : s_move_list) {
             if (tile == Tiles[move.first][move.second]){ // clicked on tile is in moveset //
-                move_piece(s_label, move.first, move.second);
+                move_piece(s_label, move.first, move.second, true);
                 return;
             }
             Tiles[move.first][move.second]->deselect();
@@ -301,6 +302,8 @@ bool chess_game::check_if_checkmate(){
 void chess_game::setup_board(){
     // Load the board image from resources and set it on labelBoard //
     QPixmap boardPixmap(":/images/board.png");
+    if (!isWhite){ boardPixmap = boardPixmap.transformed(QTransform().scale(-1, -1)); } // flips board if black //
+
     boardLabel->setFixedSize(640, 640);
     boardLabel->setPixmap(boardPixmap);
     boardLabel->setFixedSize(boardPixmap.size());  // Fix size to board size //
@@ -323,12 +326,39 @@ void chess_game::setup_board(){
     pieceImages["bR"] = sprite.copy(4 * (pieceWidth + 4), pieceHeight + 7, pieceWidth, pieceHeight);
     pieceImages["bP"] = sprite.copy(5 * (pieceWidth + 3.7), pieceHeight + 7, pieceWidth, pieceHeight);
 
+    if (!isWhite){ // flips the board if black perspective //
+        QString flippedBoard[8][8];
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                flippedBoard[row][col] = board[7 - row][7 - col];
+            }
+        }
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                board[row][col] = flippedBoard[row][col];
+            }
+        }
+    }
+
+    QPixmap tile1Pixmap(":/images/dark_tile_textures/dark_1.png");
+    QPixmap tile2Pixmap(":/images/light_tile_textures/light_1.png");
+    tileLayout = new QGridLayout(boardLabel);
+    boardLabel->setLayout(tileLayout);
+    tileLayout->setSpacing(0); // spacing between tiles //
+    tileLayout->setContentsMargins(0,0,0,0); // margins //
+    qDebug() << "tile1Pixmap isNull:" << tile1Pixmap.isNull();
+    qDebug() << "tile2Pixmap isNull:" << tile2Pixmap.isNull();
     for (int row = 0; row < 8; ++row) {
         // Creates the 64 clickable tile labels //
         for (int col = 0; col < 8; ++col) {
             Tiles[row][col] = new ClickableTileLabel(row, col, boardLabel);
-            Tiles[row][col]->setGeometry(col * tileSize, row * tileSize, tileSize, tileSize);
-            Tiles[row][col]->setStyleSheet("");
+
+            int flip = 0;
+            if (!isWhite){ flip = 1; }
+            if ((col + row) % 2 == flip){ Tiles[row][col]->setPixmap(tile1Pixmap); }
+            else { Tiles[row][col]->setPixmap(tile2Pixmap); }
+
+            tileLayout->addWidget(Tiles[row][col], row, col);
             Tiles[row][col]->show();
 
             connect(Tiles[row][col], &ClickableTileLabel::TileClicked, this, [=](ClickableTileLabel* tile){
@@ -337,6 +367,7 @@ void chess_game::setup_board(){
             });
         }
     }
+
     for (int col = 0; col < 8; ++col) {
         // Creates the 32 pieces objects at starting positions //
         for (int row = 0; row < 8; ++row) {

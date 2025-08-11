@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>images/board.png</file>
         <file>images/pieces.png</file>
+        <file>images/dark_tile_textures/dark_1.png</file>
+        <file>images/light_tile_textures/light_1.png</file>
     </qresource>
 </RCC>

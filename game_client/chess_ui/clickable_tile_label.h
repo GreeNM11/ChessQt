@@ -3,6 +3,7 @@
 
 #include <QLabel>
 #include <QMouseEvent>
+#include <QPainter>
 
 class ClickableTileLabel : public QLabel
 {
@@ -17,7 +18,6 @@ public:
     void select();
     void deselect();
 
-
 signals:
     void TileClicked(ClickableTileLabel* tile);
 
@@ -27,6 +27,10 @@ protected:
 private:
     int row_;
     int col_;
+
+    QColor overlayColor;
+    void setOverlayColor(const QColor& color);
+    void paintEvent(QPaintEvent* event) override;
 };
 
 #endif // CLICKABLE_Tile_LABEL_H

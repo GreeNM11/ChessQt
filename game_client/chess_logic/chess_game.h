@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QGridLayout>
 #include "game_client/chess_ui/piece_label.h"
 #include "game_client/chess_ui/clickable_tile_label.h"
 
@@ -42,6 +43,7 @@ private:
         { "wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR" }
     };
 
+    QGridLayout* tileLayout;
     ClickableTileLabel* Tiles[8][8]; // board for Tile[row][col] //
     Piece* piece_board[8][8]; // object_board[row][col] //
     PieceLabel* piece_label_board[8][8]; // label_board[row][col] //
