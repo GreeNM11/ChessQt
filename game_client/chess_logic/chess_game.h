@@ -31,7 +31,7 @@ private:
     QLabel* boardLabel;
     QMap<QString, QPixmap> pieceImages; // holds sprites
 
-    QString board[8][8] = {  // String Chess Board //
+    QString board[8][8] = { // String Chess Board //
         { "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR" },
         { "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP" },
         { "",   "",   "",   "",   "",   "",   "",   "" },
@@ -65,9 +65,9 @@ private:
 
     void deselect_all();
     void select_piece(PieceLabel* clicked_label);
-    void switch_turn(QString sendMove);
+    void switch_turn();
 
-    void move_piece(PieceLabel* p, int new_row, int new_col);
+    void move_piece(PieceLabel* p, int new_row, int new_col, bool send);
     void pawn_mechanics(PieceLabel* p, int old_row, int old_col, int row, int col, bool capture);
 
     void click_piece_action(PieceLabel* clicked_label);

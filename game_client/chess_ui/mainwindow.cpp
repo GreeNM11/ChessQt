@@ -52,9 +52,10 @@ void MainWindow::onCreateGameSession(QString ID){
 void MainWindow::onJoinGameSession(bool joined, bool w){
     if (joined){
         QString color = w ? "White" : "Black";
-        ClientMessage("Joining Game.. You are " + color);
         createGamePage(w);
         playerName = color;
+        client->sendPlayerMessage(gameID, playerName," has joined");
+        ClientMessage("You are " + color);
     }
     else{
         ClientMessage("Retry Join Code");
@@ -82,9 +83,7 @@ void MainWindow::createGamePage(bool w){
 
 void MainWindow::onPlayerMove(const QString move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
 
-void MainWindow::onPlayerMessage(QString playerName, QString msg){
-    ClientMessage(playerName + ": " + msg);
-}
+void MainWindow::onPlayerMessage(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
 
 ///-------------------------------------- Server UI --------------------------------------///
 

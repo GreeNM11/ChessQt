@@ -9,7 +9,7 @@
 
 class Piece {
 public:
-    Piece(bool w);
+    Piece(bool w,  bool playerIsWhite);
     virtual ~Piece();
     void has_moved();
     bool get_moved();
@@ -27,6 +27,7 @@ protected:
 
     // Variables //
     bool isWhite;
+    bool playerIsWhite;
     QChar same;
     QChar opposite;
     QString type;
@@ -41,7 +42,7 @@ protected:
 
 class King : public Piece {
 public:
-    King(bool w);
+    King(bool isWhite, bool playerIsWhite);
     ~King();
     std::vector<std::pair<int,int>> get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 
@@ -54,35 +55,35 @@ private:
 
 class Queen : public Piece {
 public:
-    Queen(bool w);
+    Queen(bool isWhite, bool playerIsWhite);
     ~Queen();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 };
 
 class Rook : public Piece {
 public:
-    Rook(bool w);
+    Rook(bool isWhite, bool playerIsWhite);
     ~Rook();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 };
 
 class Bishop : public Piece {
 public:
-    Bishop(bool w);
+    Bishop(bool isWhite, bool playerIsWhite);
     ~Bishop();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 };
 
 class Knight : public Piece {
 public:
-    Knight(bool w);
+    Knight(bool isWhite, bool playerIsWhite);
     ~Knight();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 };
 
 class Pawn : public Piece {
 public:
-    Pawn(bool w);
+    Pawn(bool isWhite, bool playerIsWhite);
     ~Pawn();
     std::vector<std::pair<int,int>>get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved);
 };
