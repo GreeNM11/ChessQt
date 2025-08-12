@@ -13,7 +13,7 @@ void ClickableTileLabel::mousePressEvent(QMouseEvent *event) {
     QLabel::mousePressEvent(event);
 }
 
-void ClickableTileLabel::select(){ setOverlayColor(QColor(100, 100, 100, 100)); }
+void ClickableTileLabel::select(){ setOverlayColor(QColor(100, 100, 100, 180)); }
 void ClickableTileLabel::deselect(){ setOverlayColor(QColor(0, 0, 0, 0)); }
 
 void ClickableTileLabel::setOverlayColor(const QColor& color) {

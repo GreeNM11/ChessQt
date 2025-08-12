@@ -42,6 +42,7 @@ signals:
     void joinGameSession_S(bool gameJoined, bool isWhite);
     void sendMove_S(QString move);
     void sendPlayerMessage_S(QString playerName, QString msg);
+    void sendErrorMessage_S(QString msg);
 };
 
 #endif // CLIENT_H

@@ -23,7 +23,7 @@ private:
 
     QString playerName;
 
-    void createGamePage(bool isWhite);
+    void createGamePage(bool isWhite, bool isOnline);
 
 private slots:
     void ClientMessage(const QString msg);
@@ -40,6 +40,7 @@ private slots:
 
     void onReceiveMove(QString move);
     void onPlayerMessage(QString playerName, QString msg);
+    void onErrorMessage(QString msg);
 
     // Server Function Slots //
     void ServerMessage(const QString msg);

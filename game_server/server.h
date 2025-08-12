@@ -1,13 +1,13 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
 
 #include "clientwrap.h"
+#include "server_security.h"
 
 class Server : public QObject {
     Q_OBJECT

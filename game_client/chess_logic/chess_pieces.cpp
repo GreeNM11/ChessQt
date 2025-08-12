@@ -2,19 +2,17 @@
 
 // --------- // Base Piece Class // -------------------------------------------------------------------------- //
 
-Piece::Piece(bool isWhite, bool playerIsWhite) : isWhite(isWhite), playerIsWhite(playerIsWhite){
-    same = !isWhite ? 'b' : 'w';
-    opposite = isWhite ? 'b' : 'w';
+Piece::Piece(QString pieceCode, int row, int col, bool playerIsWhite)
+    : row(row), col(col), playerIsWhite(playerIsWhite){
+    same = pieceCode.at(0);
+    opposite = (same == 'w') ? 'b' : 'w';
+    isWhite = same == 'w';
 }
 Piece::~Piece(){}
-void Piece::has_moved(){ hasMoved = true; }
-bool Piece::get_moved(){ return hasMoved;}
-bool Piece::get_color() const { return isWhite; }
-QString Piece::get_piece_type() const { return type; }
 
-std::vector<std::pair<int,int>>Piece::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){return moveset;}
+std::vector<std::pair<int,int>>Piece::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){return moveset;}
 
-std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>> Piece::check_if_pinned(const QString board[8][8]){
     moveset.clear();
     int c;
     for (c = 0;c < 8; c++){ // if a king is in a line, then add the whole line to the moveset //
@@ -45,8 +43,6 @@ std::vector<std::pair<int,int>> Piece::check_if_pinned(int row, int col, const Q
     }
     return {};
 }
-
-bool Piece::get_move_twice(){return move_twice;}
 
 void Piece::moves_line(int p_row, int p_col, int r_mult, int c_mult, const QString board[8][8], std::vector<std::pair<int,int>> &m){
 
@@ -84,17 +80,17 @@ void Piece::knight_move(int row, int col, int vertical, int horizontal, const QS
 
 // --------- // King // -------------------------------------------------------------------------------------- //
 
-King::King(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+King::King(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wK" : "bK";
 }
 King::~King(){}
-std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>King::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     QString b[8][8];
     for (int r=0; r<8; r++){
         for (int c=0; c<8; c++){
             if (board[r][c] != same+'K'){
-                b[r][c] = board[r][c]; // makes board without same side king to avoid king blocking checks //
+                b[r][c] = board[r][c]; // removes king so it wont block checks //
             }
         }
     }
@@ -102,10 +98,12 @@ std::vector<std::pair<int,int>>King::get_moveset(int row, int col, const QString
     for (int i = 0; i < 8; i++){
         add_valid_move(row+direction[i][0], col+direction[i][1], b, moveset);
     }
-    if (!hasMoved && check_if_valid(row, col, board).empty()){add_castle_move(row, col, board, p_board);}
+    // Possible Castle Moves //
+    if (!hasMoved && check_if_valid(row, col, board).empty()){ add_castle_move(row, col, board, p_board); }
     return moveset;
 }
 
+        // King Helper Fuctions //
 void King::add_castle_move(int row, int col, const QString board[8][8], Piece* p_board[8][8]){
     for (int c = col+1; c < 8; c++){ // right side castle //
         if (board[row][c] == same + 'R' && p_board[row][c]->get_moved() == false){
@@ -124,17 +122,14 @@ void King::add_castle_move(int row, int col, const QString board[8][8], Piece* p
         }
     }
 }
-
-std::vector<std::pair<int,int>> King::is_in_check(int row, int col, const QString board[8][8]){
+std::vector<std::pair<int,int>> King::is_in_check(const QString board[8][8]){
     return check_if_valid(row,col,board);
 }
-
 void King::add_valid_move(int row, int col, const QString board[8][8], std::vector<std::pair<int,int>> &m){
     if (check_if_valid(row,col,board).empty()){
         m.push_back(std::make_pair(row, col));
     }
 }
-
 std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QString board[8][8]){
     if (row >= 8 || row < 0 || col >= 8 || col < 0 || (board[row][col] != nullptr && board[row][col].at(0) == same && board[row][col] != same + 'K')){
         return {{-2,-1}};  // cant move outside board or same color piece
@@ -255,11 +250,11 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
 
 // --------- // Queen // ------------------------------------------------------------------------------------- //
 
-Queen::Queen(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+Queen::Queen(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wQ" : "bQ";
 }
 Queen::~Queen(){}
-std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>Queen::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // combines both bishop and rook moves, entire direction array //
     for (int i = 0; i < 8; i++){
@@ -269,11 +264,11 @@ std::vector<std::pair<int,int>>Queen::get_moveset(int row, int col, const QStrin
 }
 // --------- // Rook // -------------------------------------------------------------------------------------- //
 
-Rook::Rook(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+Rook::Rook(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wR" : "bR";
 }
 Rook::~Rook(){}
-std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>Rook::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // 2 horizontal and 2 vertical lines, first half of direction array //
     for (int i = 0; i < 4; i++){
@@ -283,11 +278,11 @@ std::vector<std::pair<int,int>>Rook::get_moveset(int row, int col, const QString
 }
 // --------- // Bishop // ------------------------------------------------------------------------------------ //
 
-Bishop::Bishop(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+Bishop::Bishop(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wB" : "bB";
 }
 Bishop::~Bishop(){}
-std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>Bishop::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // 4 diagonals for bishop, second half of direction array //
     for (int i = 4; i < 8; i++){
@@ -297,11 +292,11 @@ std::vector<std::pair<int,int>>Bishop::get_moveset(int row, int col, const QStri
 }
 // --------- // Knight // ------------------------------------------------------------------------------------ //
 
-Knight::Knight(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+Knight::Knight(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wN" : "bN";
 }
 Knight::~Knight(){}
-std::vector<std::pair<int,int>>Knight::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>Knight::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
     // all 8 possible moves for knights //
     knight_move(row, col, 2,  1, board, moveset);
@@ -316,21 +311,22 @@ std::vector<std::pair<int,int>>Knight::get_moveset(int row, int col, const QStri
 }
 // --------- // Pawn // ------------------------------------------------------------------------------------- //
 
-Pawn::Pawn(bool isWhite, bool playerIsWhite) : Piece(isWhite, playerIsWhite) {
+Pawn::Pawn(QString pieceCode, int row, int col, bool playerIsWhite) : Piece(pieceCode, row, col, playerIsWhite) {
     type = isWhite ? "wP" : "bP";
 }
 Pawn::~Pawn(){}
-std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
+std::vector<std::pair<int,int>>Pawn::get_moveset(const QString board[8][8], Piece* p_board[8][8], Piece* last_moved){
     moveset.clear();
+
     int direction = 1;
     if (isWhite ^ !playerIsWhite){direction = -1;}
+
     int up_one = row+direction;
 
     if (board[up_one][col] == ""){ // forward moves //
         moveset.push_back(std::make_pair(up_one, col));
         if (!hasMoved && board[up_one + direction][col] == ""){
             moveset.push_back(std::make_pair(up_one + direction, col));
-            move_twice = true; // for en passant availability //
         }
     }
     // capturing moves //
@@ -345,12 +341,11 @@ std::vector<std::pair<int,int>>Pawn::get_moveset(int row, int col, const QString
             }
         }
     }
-    if (col-1 > 0){ // left side scenario //
+    if (col-1 >= 0){ // left side scenario //
         if (board[up_one][col-1].at(0) == opposite){
             moveset.push_back(std::make_pair(up_one, col-1));
         }
         else if (board[row][col-1] == opposite + 'P' && p_board[row][col-1] == last_moved){
-            qDebug() << last_moved->get_piece_type();
             if (last_moved->get_move_twice() == true){
                 moveset.push_back(std::make_pair(up_one, col-1));
             }

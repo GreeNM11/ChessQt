@@ -12,8 +12,8 @@ class ClickableTileLabel : public QLabel
 public:
     explicit ClickableTileLabel(int row, int col, QWidget *parent = nullptr);
 
-    int row() const { return row_; }
-    int col() const { return col_; }
+    int get_row() const { return row_; }
+    int get_col() const { return col_; }
 
     void select();
     void deselect();

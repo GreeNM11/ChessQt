@@ -21,6 +21,7 @@ void Client::onReadyRead() {
 }
 
 void Client::receiveMessage(const QString& msg) {
+    //emit clientMessage(msg);
     QStringList parts = msg.split("|");
     if (parts[0] == "CREATE_GAME_S" && parts.size() >= 2) {
         emit createGameSession_S(parts[1]);
@@ -28,11 +29,14 @@ void Client::receiveMessage(const QString& msg) {
     else if (parts[0] == "JOIN_GAME_S" && parts.size() >= 3) {
         emit joinGameSession_S(parts[1] == "1", parts[2] == "1");
     }
-    else if (parts[0] == "SEND_MOVE_S" && parts.size() >= 2) {
+    else if (parts[0] == "SEND_PLAYER_MOVE_S" && parts.size() >= 2) {
         emit sendMove_S(parts[1]);
     }
     else if (parts[0] == "SEND_PLAYER_MESSAGE_S" && parts.size() >= 3) {
         emit sendPlayerMessage_S(parts[1], parts[2]);
+    }
+    else if (parts[0] == "SEND_ERROR_MESSAGE_S" && parts.size() >= 2) {
+        emit sendErrorMessage_S(parts[1]);
     }
     else{
         emit clientMessage("Received Error Message from Server: " + msg);

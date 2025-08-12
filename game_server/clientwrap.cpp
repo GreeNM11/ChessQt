@@ -25,7 +25,6 @@ void ClientWrap::onReadyRead() {
 }
 
 void ClientWrap::receiveMessage(const QString& msg) {
-    emit serverMessage(msg);
     if (msg == ""){ return; }
     QStringList parts = msg.split("|");
     if (parts[0] == "CREATE_GAME" && parts.size() >= 2) {
@@ -62,10 +61,13 @@ void ClientWrap::joinGameSession_S(bool gameFound, bool isWhite){
     sendMessage("JOIN_GAME_S|" + QString(gameFound ? "1" : "0") + "|" + QString(isWhite ? "1" : "0") + "\n");
 }
 void ClientWrap::sendMove_S(QString move){
-    sendMessage("SEND_MOVE_S|" + move + "\n");
+    sendMessage("SEND_PLAYER_MOVE_S|" + move + "\n");
 }
 void ClientWrap::sendPlayerMessage_S(QString playerName, QString msg){
     sendMessage("SEND_PLAYER_MESSAGE_S|" + playerName + "|" + msg + "\n");
+}
+void ClientWrap::sendErrorMessage_S(QString msg){
+    sendMessage("SEND_ERROR_MESSAGE_S|" + msg + "\n");
 }
 
 

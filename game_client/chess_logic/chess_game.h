@@ -4,18 +4,20 @@
 #include <QMainWindow>
 #include <QMap>
 #include <QGridLayout>
+
 #include "game_client/chess_ui/piece_label.h"
 #include "game_client/chess_ui/clickable_tile_label.h"
+#include "game_client/chess_logic/board_state.h"
 
 namespace Ui {class ChessQt;}
 
 class chess_game : public QObject{
     Q_OBJECT
 public:
-    chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, QObject* parent = nullptr);
+    chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, bool isOnline, QObject* parent = nullptr);
     ~chess_game();
 
-    void receiveMove(QString move);
+    void receive_move(QString move);
 
 private:
     const int pieceWidth = 80;
@@ -23,66 +25,50 @@ private:
     const int tileSize = 80;
 
     // Player Variables //
+    bool isOnline;
+    bool isWhite;
     int time;
     int increment;
-    bool isWhite;
-    bool white_turn = true;
 
-    // Board Variables //
+    std::unique_ptr<board_state> game_state; // handles all logic //
+
+    // Board Label Variables //
     QLabel* boardLabel;
-    QMap<QString, QPixmap> pieceImages; // holds sprites
-
-    QString board[8][8] = { // String Chess Board //
-        { "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR" },
-        { "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP" },
-        { "",   "",   "",   "",   "",   "",   "",   "" },
-        { "",   "",   "",   "",   "",   "",   "",   "" },
-        { "",   "",   "",   "",   "",   "",   "",   "" },
-        { "",   "",   "",   "",   "",   "",   "",   "" },
-        { "wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP" },
-        { "wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR" }
-    };
+    QMap<QString, QPixmap> pieceImages; // holds sprites //
 
     QGridLayout* tileLayout;
     ClickableTileLabel* Tiles[8][8]; // board for Tile[row][col] //
-    Piece* piece_board[8][8]; // object_board[row][col] //
     PieceLabel* piece_label_board[8][8]; // label_board[row][col] //
 
-    PieceLabel* s_label = nullptr; // keeps track of selected piece //
-    Piece* last_moved = nullptr; // keeps track of last move //
-    std::vector<std::pair<int,int>> s_move_list = {}; // vector of selected piece's available moves
-
-    PieceLabel* last_piece_moved;
     PieceLabel* white_king_label;
     PieceLabel* black_king_label;
 
-    std::vector<std::pair<int,int>> block_move_list = {}; // movelist that get player out of check //
-
-    int in_check; // 0 is no, 1 is check, 2 is double check //
-    bool checkmate;
-
     // Board Functions //
-    Piece* make_piece(QString pieceCode);
-    PieceLabel* make_piece_label(int row, int col, QString pieceCode, int tileSize, QMap<QString, QPixmap> pieceImages);
-
-    void deselect_all();
-    void select_piece(PieceLabel* clicked_label);
-    void switch_turn();
-
-    void move_piece(PieceLabel* p, int new_row, int new_col, bool send);
-    void pawn_mechanics(PieceLabel* p, int old_row, int old_col, int row, int col, bool capture);
-
     void click_piece_action(PieceLabel* clicked_label);
     void click_tile_action(ClickableTileLabel* tile);
-    void capture_piece(int row, int col);
-
-    bool check_if_in_check();
-    bool check_if_checkmate();
 
     void setup_board();
 
+private slots:
+    // Label Requests //
+    void make_piece_label(QString pieceCode, int row, int col);
+    void move_piece_label(int p_row, int p_col, int new_row, int new_col);
+    void capture_piece_label(int row, int col);
+
+    void highlight_tiles(std::vector<std::pair<int,int>> move_list, bool turn); // turn is on/off //
+    void highlight_piece(int row, int col, bool turn);
+
+    void check_king_labels(bool white_turn, bool in_check);
+    void checkmate_label(bool white_turn);
+
+    // Server Information //
+    void send_player_move(QString move, bool isWhite);
+
 signals:
+    // MainWindow Requests //
     void clientMessage(const QString msg);
+
+    // Server Requests //
     void player_move(const QString move, const bool isWhite);
 };
 

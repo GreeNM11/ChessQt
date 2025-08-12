@@ -3,13 +3,12 @@
 
 #include <QLabel>
 #include <QMouseEvent>
-#include "game_client/chess_logic/chess_pieces.h"
 
 class PieceLabel : public QLabel {
     Q_OBJECT
 
 public:
-    explicit PieceLabel(QWidget* parent = nullptr, Piece* p_object = nullptr, int row = 0, int col = 0);
+    explicit PieceLabel(QWidget* parent = nullptr, int row = 0, int col = 0, int tileSize = 80);
     ~PieceLabel();
 
     void select();
@@ -19,7 +18,6 @@ public:
     void check_king();
     void remove_check();
 
-    Piece* get_object();
     int get_col();
     int get_row();
     bool get_color();
@@ -28,7 +26,6 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
 
 private:
-    Piece* p_object;
     bool selected = false;
     int col;
     int row;
