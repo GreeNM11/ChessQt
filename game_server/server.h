@@ -6,8 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include "clientwrap.h"
 #include "server_security.h"
+#include "gamesession.h"
 
 class Server : public QObject {
     Q_OBJECT
@@ -30,13 +30,6 @@ private slots:
 private:
     QTcpServer *server;
     void serverMessage(QString msg);
-
-    struct GameSession {
-        QString gameID;
-        bool isWhite; // if player1 is white //
-        ClientWrap* player1 = nullptr;
-        ClientWrap* player2 = nullptr;
-    };
 
     QHash<QString, GameSession*> activeSessions;
     QHash<QString, ClientWrap*> clientConnected;
