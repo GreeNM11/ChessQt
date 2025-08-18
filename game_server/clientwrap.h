@@ -22,7 +22,7 @@ public:
     void joinGameSession_S(bool gameFound, bool isWhite);
     void sendMove_S(QString move);
     void sendPlayerMessage_S(QString playerName, QString msg);
-    void sendErrorMessage_S(QString msg);
+    void sendErrorMessage_S(QString msg, bool white);
 
 signals:
     void serverMessage(QString msg);

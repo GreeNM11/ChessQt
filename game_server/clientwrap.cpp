@@ -66,8 +66,12 @@ void ClientWrap::sendMove_S(QString move){
 void ClientWrap::sendPlayerMessage_S(QString playerName, QString msg){
     sendMessage("SEND_PLAYER_MESSAGE_S|" + playerName + "|" + msg + "\n");
 }
-void ClientWrap::sendErrorMessage_S(QString msg){
-    sendMessage("SEND_ERROR_MESSAGE_S|" + msg + "\n");
+void ClientWrap::sendErrorMessage_S(QString msg, bool white){
+    if (msg != ""){
+        if (white){ msg = "White: " + msg; }
+        else { msg = "Black: " + msg; }
+        sendMessage("SEND_ERROR_MESSAGE_S|" + msg + "\n");
+    }
 }
 
 

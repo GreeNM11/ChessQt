@@ -37,23 +37,20 @@ void Server::clientDisconnect(ClientWrap* client){
     serverMessage("Client " + client->getID() + " Disconnected");
 }
 
-void Server::newGameSession(ClientWrap* client, bool isWhitef){
-    QString gameId = QUuid::createUuid().toString(QUuid::WithoutBraces).left(4); // 4 char game id //
+void Server::newGameSession(ClientWrap* client, bool isWhite){
+    QString gameID = QUuid::createUuid().toString(QUuid::WithoutBraces).left(4); // 4 char game id //
     // Create and store session
-    GameSession* session = new GameSession;
-    session->gameID = gameId;
-    session->player1 = client;
-    session->isWhite = isWhitef;
+    GameSession* session = new GameSession(gameID, client, isWhite);
 
-    activeSessions.insert(gameId, session); // adds to hash map of game sessions //
-    client->createGameSession_S(gameId); // sends back to local client //
+    activeSessions.insert(gameID, session); // adds to hash map of game sessions //
+    client->createGameSession_S(gameID); // sends back to local client //
 }
 
 void Server::joinGameSession(ClientWrap* client, QString gameID){
     if (activeSessions.contains(gameID)){
         GameSession* session = activeSessions.value(gameID);
-        session->player2 = client;
-        client->joinGameSession_S(true, !session->isWhite); // gameFound | p2 isWhite parameters //
+        session->setPlayer2(client);
+        client->joinGameSession_S(true, session->player2_color()); // gameFound | p2 isWhite parameters //
     }
     else{
         client->joinGameSession_S(false, false); // game not found | just false is dont care //
@@ -62,15 +59,14 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
 
 void Server::moveReceived(QString gameID, bool isWhite, QString move){
     GameSession* session = activeSessions.value(gameID);
-
+    serverMessage(move);
     session->validate_move(isWhite, move);
-
 }
 
 void Server::playerMessageReceived(QString gameID, QString playerName, QString msg){
     GameSession* session = activeSessions.value(gameID);
-    session->player1->sendPlayerMessage_S(playerName, msg); // sends to both players so message only shows if received by server //
-    session->player2->sendPlayerMessage_S(playerName, msg);
+    session->getPlayer1()->sendPlayerMessage_S(playerName, msg); // sends to both players so message only shows if received by server //
+    session->getPlayer2()->sendPlayerMessage_S(playerName, msg);
 }
 
 

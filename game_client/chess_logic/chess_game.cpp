@@ -119,7 +119,7 @@ void chess_game::setup_board(){
         }
     }
     // Creates the game logic handler //
-    game_state = std::make_unique<board_state>(isWhite, isOnline);
+    game_state = std::make_unique<board_state>(isWhite, isOnline, false);
 
     connect(game_state.get(), &board_state::make_piece_label, this, &chess_game::make_piece_label);
     connect(game_state.get(), &board_state::move_piece_label, this, &chess_game::move_piece_label);

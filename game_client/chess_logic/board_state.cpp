@@ -21,7 +21,7 @@ void board_state::capture_piece(int row, int col){
     board[row][col] = "";
     delete piece_board[row][col];
     piece_board[row][col] = nullptr;
-    emit capture_piece_label(row, col);
+    if (!isServer){ emit capture_piece_label(row, col); }
 }
 
 //----------------------------------- Handles Piece Interaction -----------------------------------------//
@@ -99,19 +99,22 @@ void board_state::select_piece(int row, int col){
             }
         }
     }
-    emit highlight_tiles(s_move_list, true); // updates labels to highlight //
-    emit highlight_piece(row, col, true);
+    if (!isServer){ // server game has no ui //
+        emit highlight_tiles(s_move_list, true); // updates labels to highlight //
+        emit highlight_piece(row, col, true);
+    }
+
 }
 void board_state::deselect_piece(){
 
     // Deselects selected_piece and rids piece highlight //
 
-    if (selected_piece != nullptr){
-        emit highlight_piece(selected_piece->get_row(), selected_piece->get_col(), false);
+    if (selected_piece != nullptr){ // Server version has no ui to emit to //
+        if (!isServer){ emit highlight_piece(selected_piece->get_row(), selected_piece->get_col(), false); }
         selected_piece = nullptr;
     }
     if (!s_move_list.empty()){
-        emit highlight_tiles(s_move_list, false); // rids old highlighted moves //
+        if (!isServer){ emit highlight_tiles(s_move_list, false); }// rids old highlighted moves //
         s_move_list.clear();
     }
 
@@ -123,7 +126,7 @@ void board_state::send_move_request(int p_row, int p_col, int new_row, int new_c
     if (!isOnline) {
         move_piece(p_row, p_col, new_row, new_col);
     }
-    else if (isWhite == white_turn && isOnline){ // Must validate move with server to move //
+    else if (isWhite == white_turn && isOnline && !isServer){ // Must validate move with server to move //
         int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
         QString move = QString::number(moveInt);
         if (moveInt < 1000){ move = "0" + move; } // no 0 in front of int //
@@ -160,8 +163,7 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
 
     board[new_row][new_col] = board[p_row][p_col];
     board[p_row][p_col] = "";
-
-    emit move_piece_label(p_row, p_col, new_row, new_col);
+    if (!isServer){ emit move_piece_label(p_row, p_col, new_row, new_col); }
 
     // Pawn Mechancis (en passant and promotion) //
     if (piece_board[new_row][new_col]->get_piece_type().at(1) == 'P'){pawn_mechanics(p_row, p_col, new_row, new_col, capture);}
@@ -241,11 +243,12 @@ void board_state::switch_turn(int row, int col){
     white_turn = !white_turn; // switches turn //
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
-    emit check_king_labels(white_turn, in_check); // checks king labels //
 
-    if (in_check){ // to do
-        emit checkmate_label(white_turn);
+    if (in_check){
+        emit check_king_labels(white_turn, in_check); // checks king labels //
+
     }
+    // to do emit checkmate_label(white_turn);
 }
 
 bool board_state::check_if_in_check(){
@@ -303,7 +306,7 @@ void board_state::setup_board(){
 
 //----------------------------------- Class Defaults -----------------------------------------//
 
-board_state::board_state(bool isWhite, bool isOnline) : isWhite(isWhite), isOnline(isOnline) {}
+board_state::board_state(bool isWhite, bool isOnline, bool isServer) : isWhite(isWhite), isOnline(isOnline), isServer(isServer) {}
 board_state::~board_state(){
     for (int row = 0; row < 8; ++row) {
         // Deletes all piece objects //
@@ -314,4 +317,42 @@ board_state::~board_state(){
         }
     }
 }
+
+//----------------------------------- Server Validation -----------------------------------------//
+
+int board_state::validate_move(QString move){
+    int from_row = move.at(0).digitValue();
+    int from_col = move.at(1).digitValue();
+    int to_row   = move.at(2).digitValue();
+    int to_col   = move.at(3).digitValue();
+
+    // Bounds check //
+    if ((from_row < 0 || from_row >= 8) ||
+        (from_col < 0 || from_col >= 8) ||
+        (to_row < 0 || to_row >= 8) ||
+        (to_col < 0 || to_col >= 8)) {
+        return 1; // out of bounds //
+    }
+
+    // Piece existence check //
+    if (piece_board[from_row][from_col] == nullptr) return 2; // no piece to move //
+    Piece* piece = piece_board[from_row][from_col];
+
+    /*
+    // 3. Turn check
+    if (piece->get_color() != white_turn) {
+        return 3; // not players turn //
+    }
+
+    // 4. Generate moveset (without selecting in UI)
+    auto moveset = piece->get_moveset(board, piece_board, last_moved);
+
+    // 5. Is destination in moveset?
+    if (std::find(moveset.begin(), moveset.end(), std::make_pair(to_row, to_col)) == moveset.end()) {
+        return 4; // move not legal for that piece
+    }
+    */
+    return 0; // valid move
+}
+
 

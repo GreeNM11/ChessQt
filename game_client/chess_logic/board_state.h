@@ -9,7 +9,7 @@ class board_state : public QObject
 {
     Q_OBJECT
 public:
-    board_state(bool isWhite, bool isOnline);
+    board_state(bool isWhite, bool isOnline, bool isServer);
     ~board_state();
 
     void setup_board();
@@ -20,11 +20,16 @@ public:
     // Server Received //
     void receive_move(QString moveCode);
 
+    // Server Validation //
+    int validate_move(QString move); // returns an error number //
+    void server_move(QString move){ receive_move(move); }
+
 private:
     // Variables //
     bool isWhite;
     bool white_turn;
     bool isOnline;
+    bool isServer;
 
     QString board[8][8] = { // String Starting Chess Board //
         { "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR" },

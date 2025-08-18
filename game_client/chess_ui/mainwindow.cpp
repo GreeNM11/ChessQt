@@ -87,7 +87,7 @@ void MainWindow::onPlayerMove(const QString move, const bool isWhite){ client->s
 
 void MainWindow::onPlayerMessage(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
 
-void MainWindow::onErrorMessage(QString msg){ ClientMessage("Server Error: " + msg); }
+void MainWindow::onErrorMessage(QString msg){ ClientMessage("ServerCode ~ " + msg); }
 
 ///-------------------------------------- Server UI --------------------------------------///
 
