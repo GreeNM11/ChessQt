@@ -244,10 +244,7 @@ void board_state::switch_turn(int row, int col){
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
 
-    if (in_check){
-        emit check_king_labels(white_turn, in_check); // checks king labels //
-
-    }
+    emit check_king_labels(white_turn, in_check); // checks king labels //
     // to do emit checkmate_label(white_turn);
 }
 
@@ -335,23 +332,23 @@ int board_state::validate_move(QString move){
     }
 
     // Piece existence check //
-    if (piece_board[from_row][from_col] == nullptr) return 2; // no piece to move //
+    if (piece_board[from_row][from_col] == nullptr) { return 2; } // no piece to move //
     Piece* piece = piece_board[from_row][from_col];
 
-    /*
-    // 3. Turn check
+
+    // Turn check
     if (piece->get_color() != white_turn) {
         return 3; // not players turn //
     }
 
-    // 4. Generate moveset (without selecting in UI)
+    // Generate moveset (without selecting in UI)
     auto moveset = piece->get_moveset(board, piece_board, last_moved);
 
-    // 5. Is destination in moveset?
+    // Is destination in moveset?
     if (std::find(moveset.begin(), moveset.end(), std::make_pair(to_row, to_col)) == moveset.end()) {
         return 4; // move not legal for that piece
     }
-    */
+
     return 0; // valid move
 }
 

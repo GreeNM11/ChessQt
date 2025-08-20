@@ -22,23 +22,23 @@ void GameSession::validate_move(bool white_move, QString move){
         int returnCode = server_game->validate_move(w_move);
 
         if (returnCode == 0){
-            //server_game->server_move(w_move);
+            server_game->server_move(w_move);
             validMove = true;
         }
         else if (returnCode == 1){
-            ErrorMessage = "Received move out of bounds | " + move;
+            ErrorMessage = "❌Received move out of bounds | " + move;
         }
         else if (returnCode == 2){
-            ErrorMessage = "Received move no piece found: " + w_move;
+            ErrorMessage = "❌Received move no piece found: " + w_move;
         }
         else if (returnCode == 3){
-            ErrorMessage = "Received move not players turn";
+            ErrorMessage = "❌Received move not players turn";
         }
         else if (returnCode == 4){
-            ErrorMessage = "Received move not legal";
+            ErrorMessage = "❌Received move not legal";
         }
         else if (returnCode == -1){
-            ErrorMessage = "Unknown move error";
+            ErrorMessage = "❌Unknown move error: Could not accept move";
         }
 
         if (!validMove){
@@ -70,6 +70,7 @@ QString GameSession::flip_move(QString move){
 GameSession::GameSession(QString gameID, ClientWrap* player1, bool isWhite)
     : gameID(gameID), player1(player1), isWhite(isWhite) {
     server_game = std::make_unique<board_state>(true, false, true); // Server runs its own version of the game //
+    server_game->setup_board();
 }
 
 GameSession::~GameSession(){

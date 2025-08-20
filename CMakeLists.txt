@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Find required Qt packages
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network Sql)
 
 # Source files
 set(PROJECT_SOURCES
@@ -32,6 +32,8 @@ set(PROJECT_SOURCES
 
     game_client/chess_logic/chess_pieces.cpp
     game_client/chess_logic/chess_pieces.h
+    game_client/chess_logic/board_state.cpp
+    game_client/chess_logic/board_state.h
     game_client/chess_logic/chess_game.cpp
     game_client/chess_logic/chess_game.h
 
@@ -40,6 +42,16 @@ set(PROJECT_SOURCES
 
     game_server/server.cpp
     game_server/server.h
+    game_server/clientwrap.cpp
+    game_server/clientwrap.h
+
+    game_server/gamesession.cpp
+    game_server/gamesession.h
+    game_server/server_security.cpp
+    game_server/server_security.h
+
+    game_server/database_chess.cpp
+    game_server/database_chess.h
 
     resources.qrc
 )
@@ -50,6 +62,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         game_server/clientwrap.h game_server/clientwrap.cpp
+        game_server/server_security.h game_server/server_security.cpp
+        game_client/chess_logic/board_state.h game_client/chess_logic/board_state.cpp
+        game_server/gamesession.h game_server/gamesession.cpp
+        game_server/database_chess.h game_server/database_chess.cpp
+
     )
 else()
     add_executable(ChessQt
@@ -63,6 +80,7 @@ target_link_libraries(ChessQt
         Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Network
+        Qt${QT_VERSION_MAJOR}::Sql
 )
 
 # 🟡 Add this to include auto-generated files like ui_mainwindow.h

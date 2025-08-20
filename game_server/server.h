@@ -8,6 +8,7 @@
 
 #include "server_security.h"
 #include "gamesession.h"
+#include "database_chess.h"
 
 class Server : public QObject {
     Q_OBJECT
@@ -29,6 +30,8 @@ private slots:
 
 private:
     QTcpServer *server;
+    std::unique_ptr<database_chess> database;
+
     void serverMessage(QString msg);
 
     QHash<QString, GameSession*> activeSessions;

@@ -1,19 +1,18 @@
 #include "server.h"
 #include <QDebug>
 
-Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)) {
-    connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
-}
-void Server::emitServerStatus(){
-    if (!server->listen(QHostAddress::Any, 1234)) {
-        emit newMessage("Server failed to start");
-    }
-    else {
-        emit newMessage("Server Started at port 1234");
-    }
-}
+// ------------------------- Server Side Functions ------------------------- //
 
 void Server::serverMessage(QString msg){ emit newMessage(msg); }
+
+void Server::emitServerStatus(){
+    if (!server->listen(QHostAddress::Any, 7575)) {
+        serverMessage("❌Server failed to start");
+    }
+    else {
+        serverMessage("✅Server Started at port 7575");
+    }
+}
 
 void Server::onNewConnection() {
     QTcpSocket* clientSocket = server->nextPendingConnection(); // gets the client that wanted to connect //
@@ -31,11 +30,12 @@ void Server::onNewConnection() {
     serverMessage("Client Connected: " + clientInfo);
 }
 
-
 void Server::clientDisconnect(ClientWrap* client){
     activeSessions.remove(client->getID());
     serverMessage("Client " + client->getID() + " Disconnected");
 }
+
+// ---------------------- Chess Game Session Functions ---------------------- //
 
 void Server::newGameSession(ClientWrap* client, bool isWhite){
     QString gameID = QUuid::createUuid().toString(QUuid::WithoutBraces).left(4); // 4 char game id //
@@ -59,7 +59,6 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
 
 void Server::moveReceived(QString gameID, bool isWhite, QString move){
     GameSession* session = activeSessions.value(gameID);
-    serverMessage(move);
     session->validate_move(isWhite, move);
 }
 
@@ -69,8 +68,14 @@ void Server::playerMessageReceived(QString gameID, QString playerName, QString m
     session->getPlayer2()->sendPlayerMessage_S(playerName, msg);
 }
 
+// --------------------------- Default Functions --------------------------- //
 
+Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)) {
+    connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
 
+    database = std::make_unique<database_chess>();
+    connect(database.get(), &database_chess::ServerMessage, this, &Server::serverMessage);
+}
 
 
 

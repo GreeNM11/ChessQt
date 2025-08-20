@@ -7,7 +7,7 @@ Client::Client(QObject *parent) : QObject(parent) {
     connect(socket, &QTcpSocket::disconnected, this, &Client::onConnect);
     connect(socket, &QTcpSocket::readyRead, this, &Client::onReadyRead);
 
-    socket->connectToHost("127.0.0.1", 1234);
+    socket->connectToHost("127.0.0.1", 7575);
 }
 void Client::onConnect() { emit connectedToServer(); }
 void Client::onDisconnect() { emit disconnectedToServer(); }
