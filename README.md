@@ -64,6 +64,8 @@ Players will only have access to the client version of the program.
   - clean imports, includes, and class hierarchy
   - delegation of tasks to classes (one class does 1 specific job)
 
+---
+
 ## Class Hierarchy
 ```
 |
@@ -79,7 +81,12 @@ Players will only have access to the client version of the program.
 |                                                                                          |clickable_tile_label|
 |                                                                                                                                                                                                                                                                                        
 ```                                                                                                                  
+---
 
 Note: This I would consider is my first major project as the final goal is deployment for others to download and play chess against each other. My intention is to learn the full
 process of building an application: backend algorithm logic, UI connection to backend, server network to receive and send messages to clients, and a database to house client 
 information. I plan to make the server remote with security measures and to add more features to aim for full functionality and professionalism in an app.
+
+https://github.com/user-attachments/assets/4e905056-4a32-44b5-be45-f4a4ffac3f7a
+
+---
