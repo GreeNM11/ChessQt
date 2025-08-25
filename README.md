@@ -90,3 +90,10 @@ information. I plan to make the server remote with security measures and to add 
 https://github.com/user-attachments/assets/4e905056-4a32-44b5-be45-f4a4ffac3f7a
 
 ---
+
+### Download & Install
+- No support for download yet, it is still in development.
+- Will deploy it when finished
+
+
+---
