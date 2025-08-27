@@ -1,19 +1,18 @@
 #include "database_chess.h"
 #include <QCryptographicHash> // simple hashing for now, replace with bcrypt for production
 
-database_chess::database_chess() {
-
-}
+database_chess::database_chess() {}
 
 database_chess::~database_chess() {
     if (db.isOpen()) db.close();
 }
 
 bool database_chess::connect() {
+    QString dbName = "chess_db";
     db = QSqlDatabase::addDatabase("QPSQL");
     db.setHostName("localhost");
     db.setPort(7598);
-    db.setDatabaseName("chess_db"); // your DB name
+    db.setDatabaseName(dbName); // your DB name
     db.setUserName("postgres");
     db.setPassword("lindanny75sql");
 
@@ -21,7 +20,7 @@ bool database_chess::connect() {
         emit ServerMessage("❌DB Connection failed:" + db.lastError().text());
         return false;
     }
-    emit ServerMessage("✅Connected to chess_db!");
+    emit ServerMessage("✅Connected to Database: " + dbName);
     return true;
 }
 

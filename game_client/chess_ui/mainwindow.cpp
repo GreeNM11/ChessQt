@@ -132,6 +132,7 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
 
         connect(server.get(), &Server::newMessage, this, &MainWindow::ServerMessage);
         server->emitServerStatus();
+        server->createDB();
     }
 }
 

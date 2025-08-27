@@ -26,9 +26,7 @@ public:
 private:
     QSqlDatabase db;
 
-    // Hash password for secure storage
     QString hashPassword(const QString &password);
-    // Verify password against stored hash
     bool verifyPassword(const QString &password, const QString &storedHash);
 
 signals:

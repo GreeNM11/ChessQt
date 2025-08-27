@@ -17,6 +17,7 @@ public:
     explicit Server(QObject *parent = nullptr);
 
     void emitServerStatus();
+    void createDB();
 
 private slots:
     void onNewConnection();
@@ -28,11 +29,11 @@ private slots:
     void moveReceived(QString gameID,  bool isWhite, QString move);
     void playerMessageReceived(QString gameID, QString playerName, QString msg);
 
+    void serverMessage(QString msg);
+
 private:
     QTcpServer *server;
     std::unique_ptr<database_chess> database;
-
-    void serverMessage(QString msg);
 
     QHash<QString, GameSession*> activeSessions;
     QHash<QString, ClientWrap*> clientConnected;

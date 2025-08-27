@@ -5,6 +5,12 @@
 
 void Server::serverMessage(QString msg){ emit newMessage(msg); }
 
+void Server::createDB(){
+    database = std::make_unique<database_chess>();
+    connect(database.get(), &database_chess::ServerMessage, this, &Server::serverMessage);
+    database->connect();
+}
+
 void Server::emitServerStatus(){
     if (!server->listen(QHostAddress::Any, 7575)) {
         serverMessage("❌Server failed to start");
@@ -72,9 +78,6 @@ void Server::playerMessageReceived(QString gameID, QString playerName, QString m
 
 Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)) {
     connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
-
-    database = std::make_unique<database_chess>();
-    connect(database.get(), &database_chess::ServerMessage, this, &Server::serverMessage);
 }
 
 
