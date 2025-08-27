@@ -34,37 +34,39 @@ bool database_chess::verifyPassword(const QString &password, const QString &stor
     return hashPassword(password) == storedHash;
 }
 
-bool database_chess::registerUser(const QString &username, const QString &password) {
+QString database_chess::registerUser(const QString &username, const QString &password) {
     QSqlQuery query;
+
     query.prepare("INSERT INTO users (username, password_hash) VALUES (:username, :password)");
     query.bindValue(":username", username);
     query.bindValue(":password", hashPassword(password));
 
     if (!query.exec()) {
-        emit ServerMessage("❌ Register failed:" + query.lastError().text());
-        return false;
+        QString err = query.lastError().text();
+        // Check if the error is about the UNIQUE constraint
+        if (err.contains("duplicate key value violates unique constraint", Qt::CaseInsensitive)) {
+            return"⚠️Username already exists: " + username;
+        } else {
+            return"❌Register failed: " + err;
+        }
     }
-    emit ServerMessage("✅ User registered:" + username);
-    return true;
+    return "✅User registered: " + username;
 }
 
-bool database_chess::loginUser(const QString &username, const QString &password) {
+QString database_chess::loginUser(const QString &username, const QString &password) {
     QSqlQuery query;
     query.prepare("SELECT password_hash FROM users WHERE username = :username");
     query.bindValue(":username", username);
 
     if (!query.exec() || !query.next()) {
-        emit ServerMessage("❌ Login failed: user not found");
-        return false;
+        return "❌Login failed: user not found";
     }
 
     QString storedHash = query.value(0).toString();
     if (verifyPassword(password, storedHash)) {
-        emit ServerMessage("✅ Login successful:" + username);
-        return true;
+        return "✅Login successful: " + username;
     } else {
-        emit ServerMessage("❌ Login failed: wrong password");
-        return false;
+        return "❌Login failed: wrong password";
     }
 }
 

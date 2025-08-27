@@ -20,8 +20,8 @@ public:
     bool connect();
 
     // User operations
-    bool registerUser(const QString &username, const QString &password);
-    bool loginUser(const QString &username, const QString &password);
+    QString registerUser(const QString &username, const QString &password);
+    QString loginUser(const QString &username, const QString &password);
 
 private:
     QSqlDatabase db;

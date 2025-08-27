@@ -64,7 +64,11 @@ QString GameSession::flip_move(QString move){
     return move;
 }
 
-
+void GameSession::sendPlayerMessage(QString playerName, QString msg){
+    // sends to both players so message only shows if received by server //
+    if (player1 != nullptr){ player1->sendPlayerMessage_S(playerName, msg); }
+    if (player2 != nullptr){ player2->sendPlayerMessage_S(playerName, msg); }
+}
 //---------------------------------// Class Defaults //---------------------------------//
 
 GameSession::GameSession(QString gameID, ClientWrap* player1, bool isWhite)

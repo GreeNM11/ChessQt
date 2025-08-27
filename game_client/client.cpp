@@ -38,6 +38,12 @@ void Client::receiveMessage(const QString& msg) {
     else if (parts[0] == "SEND_ERROR_MESSAGE_S" && parts.size() >= 2) {
         emit sendErrorMessage_S(parts[1]);
     }
+    else if (parts[0] == "REGISTER_USER_S" && parts.size() >= 2) {
+        emit registerUser_S(parts[1]);
+    }
+    else if (parts[0] == "LOGIN_USER_S" && parts.size() >= 2) {
+        emit loginUser_S(parts[1]);
+    }
     else{
         emit clientMessage("Received Error Message from Server: " + msg);
     }
@@ -50,6 +56,13 @@ void Client::sendMessage(const QString &message) {
         socket->write(data);
         socket->flush();
     }
+}
+
+void Client::registerUser(QString user, QString pass){
+    sendMessage("REGISTER_USER|" + user + "|" + pass + "\n");
+}
+void Client::loginUser(QString user, QString pass){
+    sendMessage("LOGIN_USER|" + user + "|" + pass + "\n");
 }
 
 void Client::createGameSession(bool isWhite){

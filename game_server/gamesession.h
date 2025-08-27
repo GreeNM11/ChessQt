@@ -14,6 +14,7 @@ public:
     void validate_move(bool isWhite, QString move);
     QString flip_move(QString move);
 
+    void sendPlayerMessage(QString playerName, QString msg);
     void setPlayer2(ClientWrap* player){ player2 = player; }
 
     bool player1_color(){ return isWhite; }

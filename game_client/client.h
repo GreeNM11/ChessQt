@@ -13,6 +13,9 @@ public:
     explicit Client(QObject *parent = nullptr);
 
     // Send Through Socket //
+    void registerUser(QString user, QString pass);
+    void loginUser(QString user, QString pass);
+
     void createGameSession(bool isWhite);
     void joinGameSession(const QString gameIDe);
     void sendMove(const QString gameID, const QString move, const bool isWhite);
@@ -38,6 +41,9 @@ signals:
     void disconnectedToServer();
 
     // _S means feedback from server //
+    void registerUser_S(QString code);
+    void loginUser_S(QString code);
+
     void createGameSession_S(QString gameID);
     void joinGameSession_S(bool gameJoined, bool isWhite);
     void sendMove_S(QString move);

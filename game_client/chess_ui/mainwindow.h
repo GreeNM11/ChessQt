@@ -35,6 +35,9 @@ private slots:
     void onClientConnected();
     void onClientDisconnected();
 
+    void onRegisterUser(QString code);
+    void onLoginUser(QString code);
+
     void onCreateGameSession(QString gameID);
     void onJoinGameSession(bool joined, bool isWhite);
 
@@ -46,7 +49,10 @@ private slots:
     void ServerMessage(const QString msg);
 
     // Buttons //
-    void SingleplayerClicked();
+    void registerButtonClicked();
+    void loginButtonClicked();
+
+    void singleplayerClicked();
     void hostGameClicked();
     void joinGameClicked();
 

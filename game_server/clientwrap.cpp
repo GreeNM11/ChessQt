@@ -39,6 +39,12 @@ void ClientWrap::receiveMessage(const QString& msg) {
     else if (parts[0] == "SEND_PLAYER_MESSAGE" && parts.size() >= 4) {
         emit playerMessageReceived(parts[1], parts[2], parts[3]); // gameID, playerName, msg //
     }
+    else if (parts[0] == "REGISTER_USER" && parts.size() >= 3) {
+        emit registerUser(this, parts[1], parts[2]); // user, pass //
+    }
+    else if (parts[0] == "LOGIN_USER" && parts.size() >= 3) {
+        emit loginUser(this ,parts[1], parts[2]); // user, pass //
+    }
     else {
         emit serverMessage("Unknown Message received");
     }
@@ -52,6 +58,13 @@ void ClientWrap::sendMessage(const QString& message) {
         socket->write(data);
         socket->flush();
     }
+}
+
+void ClientWrap::registerUser_S(QString code){
+    sendMessage("REGISTER_USER_S|" + code + "\n");
+}
+void ClientWrap::loginUser_S(QString code){
+    sendMessage("LOGIN_USER_S|" + code + "\n");
 }
 
 void ClientWrap::createGameSession_S(QString gameID){

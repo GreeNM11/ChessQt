@@ -61,12 +61,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ChessQt
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        game_server/clientwrap.h game_server/clientwrap.cpp
-        game_server/server_security.h game_server/server_security.cpp
-        game_client/chess_logic/board_state.h game_client/chess_logic/board_state.cpp
-        game_server/gamesession.h game_server/gamesession.cpp
-        game_server/database_chess.h game_server/database_chess.cpp
-
     )
 else()
     add_executable(ChessQt

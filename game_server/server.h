@@ -23,9 +23,11 @@ private slots:
     void onNewConnection();
     void clientDisconnect(ClientWrap* client);
 
+    void registerUser(ClientWrap* client, QString user, QString pass);
+    void loginUser(ClientWrap* client, QString user, QString pass);
+
     void newGameSession(ClientWrap* client, bool isWhite);
     void joinGameSession(ClientWrap* client, QString gameID);
-
     void moveReceived(QString gameID,  bool isWhite, QString move);
     void playerMessageReceived(QString gameID, QString playerName, QString msg);
 
