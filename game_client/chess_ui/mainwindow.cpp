@@ -38,7 +38,10 @@ void MainWindow::hostGameClicked() {
 }
 void MainWindow::joinGameClicked() {
     ui->mainStack->setCurrentWidget(ui->joinGamePage); // sets ui //
-
+}
+void MainWindow::backMenuClicked(){
+    ui->mainStack->setCurrentWidget(ui->menuPage);
+    game = nullptr;
 }
 
 ///-------------------------------------- Client Functions  --------------------------------------///
@@ -96,7 +99,11 @@ void MainWindow::createGamePage(bool w, bool isOnline){
     isWhite = w;
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
 
-    game = std::make_unique<chess_game>(ui->labelBoard, isWhite, 10, 1, isOnline); // creates game + loads board //
+    QLabel* labelBoard = new QLabel(ui->boardPage);                    // example text
+    labelBoard->setGeometry(0, 0, 640, 640);
+    labelBoard->show();
+
+    game = std::make_unique<chess_game>(labelBoard, isWhite, 10, 1, isOnline); // creates game + loads board //
     connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
     connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
     connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this]() {
@@ -140,6 +147,7 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
         connect(ui->SingleplayerButton, &QPushButton::clicked, this, &MainWindow::singleplayerClicked);
         connect(ui->HostGameButton, &QPushButton::clicked, this, &MainWindow::hostGameClicked);
         connect(ui->JoinGameButton, &QPushButton::clicked, this, &MainWindow::joinGameClicked);
+        connect(ui->backMenuButton, &QPushButton::clicked, this, &MainWindow::backMenuClicked);
 
         connect(ui->joinGameEnter, &QLineEdit::returnPressed, this, [this]() {
             gameID = ui->joinGameEnter->text();

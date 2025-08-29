@@ -27,7 +27,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="serverPage">
      <widget class="QTextEdit" name="ServerTitle">
@@ -225,26 +225,17 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </widget>
     </widget>
     <widget class="QWidget" name="boardPage">
-     <widget class="QLabel" name="labelBoard">
+     <widget class="QPushButton" name="backMenuButton">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>640</width>
-        <height>640</height>
+        <x>650</x>
+        <y>580</y>
+        <width>100</width>
+        <height>30</height>
        </rect>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>640</width>
-        <height>640</height>
-       </size>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
       <property name="text">
-       <string>TextLabel</string>
+       <string>Back to menu</string>
       </property>
      </widget>
     </widget>

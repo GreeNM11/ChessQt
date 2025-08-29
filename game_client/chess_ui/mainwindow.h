@@ -55,6 +55,7 @@ private slots:
     void singleplayerClicked();
     void hostGameClicked();
     void joinGameClicked();
+    void backMenuClicked();
 
 };
 

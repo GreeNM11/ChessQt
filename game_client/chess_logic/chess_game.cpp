@@ -151,10 +151,12 @@ chess_game::chess_game(QLabel* boardLabel, bool isWhite, int time = 0, int incre
 }
 
 chess_game::~chess_game() {
+    /*
     for (int row = 0; row < 8; ++row) { // deletes all 64 tiles of labels + pieceObjects and tiles //
         for (int col = 0; col < 8; ++col) {
             delete Tiles[row][col];
             delete piece_label_board[row][col];
         }
     }
+    */
 }
