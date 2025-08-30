@@ -59,10 +59,10 @@ private slots:
     void highlight_piece(int row, int col, bool turn);
 
     void check_king_labels(bool white_turn, bool in_check);
-    void checkmate_label(bool white_turn);
 
     // Server Information //
     void send_player_move(QString move, bool isWhite);
+    void send_checkmated(int code);
 
 signals:
     // MainWindow Requests //
@@ -70,6 +70,7 @@ signals:
 
     // Server Requests //
     void player_move(const QString move, const bool isWhite);
+    void player_checkmated(int code);
 };
 
 #endif // CHESS_GAME_H

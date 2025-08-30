@@ -19,6 +19,7 @@ public:
     void createGameSession(bool isWhite);
     void joinGameSession(const QString gameIDe);
     void sendMove(const QString gameID, const QString move, const bool isWhite);
+
     void sendPlayerMessage(const QString gameID, const QString playerName, const QString msg);
 
     // Receive Through Socket //
@@ -46,7 +47,10 @@ signals:
 
     void createGameSession_S(QString gameID);
     void joinGameSession_S(bool gameJoined, bool isWhite);
+
     void sendMove_S(QString move);
+    void sendCheckmated_S(int code);
+
     void sendPlayerMessage_S(QString playerName, QString msg);
     void sendErrorMessage_S(QString msg);
 };

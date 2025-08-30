@@ -1,20 +1,19 @@
 #include "gamesession.h"
 
-
+bool GameSession::validate_players(){
+    if(!player1){
+        player2->sendErrorMessage_S("❌White Player Missing");
+        return false;
+    }
+    else if(!player2) {
+        player1->sendErrorMessage_S("❌Black Player Missing");
+        return false;
+    }
+    return true;
+}
 void GameSession::validate_move(bool white_move, QString move){
     QString ErrorMessage = "";
-    bool validMove = false;
-
-    if(player1 == nullptr) {
-        ErrorMessage = "White player not found";
-        player2->sendErrorMessage_S(ErrorMessage, false);
-        return;
-    }
-    else if(player2 == nullptr) {
-        ErrorMessage = "Black player not found";
-        player1->sendErrorMessage_S(ErrorMessage, true);
-        return;
-    }
+    if (!validate_players()){ return; }
     else {
         QString w_move = move;
         if (!white_move){ w_move = flip_move(move); }
@@ -23,7 +22,9 @@ void GameSession::validate_move(bool white_move, QString move){
 
         if (returnCode == 0){
             server_game->server_move(w_move);
-            validMove = true;
+            player1->sendMove_S(w_move);
+            player2->sendMove_S(flip_move(w_move));
+            check_checkmated();
         }
         else if (returnCode == 1){
             ErrorMessage = "❌Received move out of bounds | " + move;
@@ -40,16 +41,17 @@ void GameSession::validate_move(bool white_move, QString move){
         else if (returnCode == -1){
             ErrorMessage = "❌Unknown move error: Could not accept move";
         }
-
-        if (!validMove){
-            player1->sendErrorMessage_S(ErrorMessage, white_move); // sends off the error code to each player //
-            player2->sendErrorMessage_S(ErrorMessage, white_move);
-            return;
-        }
-        player1->sendMove_S(w_move);
-        player2->sendMove_S(flip_move(w_move));
+        sendErrorMessage(ErrorMessage);
     }
  // black flips white move //
+}
+void GameSession::check_checkmated(){
+    if (!validate_players()){ return; }
+    int code = server_game->validate_checkmated();
+    if ( code != 0){
+        player1->sendCheckmated_S(QString::number(code));
+        player2->sendCheckmated_S(QString::number(code));
+    }
 }
 
 QString GameSession::flip_move(QString move){
@@ -69,11 +71,16 @@ void GameSession::sendPlayerMessage(QString playerName, QString msg){
     if (player1 != nullptr){ player1->sendPlayerMessage_S(playerName, msg); }
     if (player2 != nullptr){ player2->sendPlayerMessage_S(playerName, msg); }
 }
+void GameSession::sendErrorMessage(QString msg){
+    // sends off the error code to each player //
+    if (player1 != nullptr){ player1->sendErrorMessage_S(msg); }
+    if (player2 != nullptr){ player2->sendErrorMessage_S(msg); }
+}
 //---------------------------------// Class Defaults //---------------------------------//
 
 GameSession::GameSession(QString gameID, ClientWrap* player1, bool isWhite)
     : gameID(gameID), player1(player1), isWhite(isWhite) {
-    server_game = std::make_unique<board_state>(true, false, true); // Server runs its own version of the game //
+    server_game = std::make_unique<board_state>(true, false); // Server runs its own version of the game //
     server_game->setup_board();
 }
 

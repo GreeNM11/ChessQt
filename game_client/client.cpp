@@ -32,6 +32,9 @@ void Client::receiveMessage(const QString& msg) {
     else if (parts[0] == "SEND_PLAYER_MOVE_S" && parts.size() >= 2) {
         emit sendMove_S(parts[1]);
     }
+    else if (parts[0] == "SEND_CHECKMATED_S" && parts.size() >= 2) {
+        emit sendCheckmated_S(parts[1].toInt());
+    }
     else if (parts[0] == "SEND_PLAYER_MESSAGE_S" && parts.size() >= 3) {
         emit sendPlayerMessage_S(parts[1], parts[2]);
     }
@@ -75,6 +78,7 @@ void Client::sendMove(const QString gameID, const QString move, const bool isWhi
     // needs a space before | because it breaks without it //
     sendMessage("SEND_MOVE|" + gameID + "|" + QString::number(isWhite) + " |" + move + "\n");
 }
+
 void Client::sendPlayerMessage(QString gameID, const QString playerName, const QString msg){
     sendMessage("SEND_PLAYER_MESSAGE|" + gameID + "|" + playerName + "|" + msg + "\n");
 }

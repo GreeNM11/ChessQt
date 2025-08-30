@@ -28,7 +28,9 @@ private slots:
 
     void newGameSession(ClientWrap* client, bool isWhite);
     void joinGameSession(ClientWrap* client, QString gameID);
+
     void moveReceived(QString gameID,  bool isWhite, QString move);
+
     void playerMessageReceived(QString gameID, QString playerName, QString msg);
 
     void serverMessage(QString msg);

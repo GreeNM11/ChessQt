@@ -46,7 +46,6 @@ void chess_game::highlight_piece(int row, int col, bool turn){
     else{
         piece_label_board[row][col]->deselect();
     }
-
 }
 
 void chess_game::check_king_labels(bool white_turn, bool in_check){
@@ -55,9 +54,6 @@ void chess_game::check_king_labels(bool white_turn, bool in_check){
 
     if (white_turn && in_check){white_king_label->check_king();}
     else if (!white_turn && in_check){black_king_label->check_king();}
-}
-void chess_game::checkmate_label(bool white_turn){
-    bool checkmate = true;
 }
 
 //----------------------------------- Handles Label Action -----------------------------------------//
@@ -119,7 +115,7 @@ void chess_game::setup_board(){
         }
     }
     // Creates the game logic handler //
-    game_state = std::make_unique<board_state>(isWhite, isOnline, false);
+    game_state = std::make_unique<board_state>(isWhite, isOnline);
 
     connect(game_state.get(), &board_state::make_piece_label, this, &chess_game::make_piece_label);
     connect(game_state.get(), &board_state::move_piece_label, this, &chess_game::move_piece_label);
@@ -129,7 +125,7 @@ void chess_game::setup_board(){
     connect(game_state.get(), &board_state::highlight_piece, this, &chess_game::highlight_piece);
 
     connect(game_state.get(), &board_state::check_king_labels, this, &chess_game::check_king_labels);
-    connect(game_state.get(), &board_state::checkmate_label, this, &chess_game::checkmate_label);
+    connect(game_state.get(), &board_state::checkmated, this, &chess_game::player_checkmated);
 
     connect(game_state.get(), &board_state::send_player_move, this, &chess_game::send_player_move);
     connect(game_state.get(), &board_state::clientMessage, this, &chess_game::clientMessage);
@@ -141,6 +137,8 @@ void chess_game::setup_board(){
 //----------------------------------- Handles Server Requests  -----------------------------------------//
 
 void chess_game::send_player_move(QString move, bool isWhite){ emit player_move(move, isWhite); }
+void chess_game::send_checkmated(int code){ emit player_checkmated(code); }
+
 void chess_game::receive_move(QString move){ game_state->receive_move(move); }
 
 //----------------------------------- Class Defaults  -----------------------------------------//

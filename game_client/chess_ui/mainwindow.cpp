@@ -53,37 +53,40 @@ void MainWindow::ClientMessage(const QString msg){
     ui->ServerLog->setTextCursor(cursor);
 }
 
-void MainWindow::onClientConnected() {
+void MainWindow::onClientConnected_C() {
     ui->ClientStatus->clear();
     ui->ClientStatus->append("<span style='color:green;'>Server Status: Connected</span>");
 }
-void MainWindow::onClientDisconnected() {
+void MainWindow::onClientDisconnected_C() {
     ui->ClientStatus->clear();
     ui->ClientStatus->append("<span style='color:red;'>Server Status: Disconnected</span>");
 }
 
-void MainWindow::onRegisterUser(QString code){
+void MainWindow::onRegisterUser_C(QString code){
     if (code.at(0) == "✅"){
         ui->mainStack->setCurrentWidget(ui->menuPage);
     }
     ClientMessage(code);
 }
-void MainWindow::onLoginUser(QString code){
+void MainWindow::onLoginUser_C(QString code){
     if (code.at(0) == "✅"){
         ui->mainStack->setCurrentWidget(ui->menuPage);
     }
     ClientMessage(code);
 }
 
-void MainWindow::onCreateGameSession(QString ID){
+void MainWindow::onCreateGameSession_C(QString ID){
     gameID = ID;
+    isOnline = true;
     ClientMessage("Created Game Session. ID: " + gameID);
 }
-void MainWindow::onJoinGameSession(bool joined, bool w){
+void MainWindow::onJoinGameSession_C(bool joined, bool w){
     if (joined){
         QString color = w ? "White" : "Black";
         createGamePage(w, true);
         playerName = color;
+        isOnline = true;
+
         client->sendPlayerMessage(gameID, playerName," has joined");
         ClientMessage("You are " + color);
     }
@@ -92,7 +95,20 @@ void MainWindow::onJoinGameSession(bool joined, bool w){
     }
 }
 
-void MainWindow::onReceiveMove(QString move){ game->receive_move(move); }
+void MainWindow::onReceiveMove_C(QString move){ game->receive_move(move); }
+void MainWindow::onReceiveCheckmated_C(int code){
+    if (code == 1){ ClientMessage("Black won: White Checkmated"); }
+    else if (code == 2){ ClientMessage("White won: Black Checkmated"); }
+
+    else if (code == 3){ ClientMessage("Draw: White Stalemated"); }
+    else if (code == 4){ ClientMessage("Draw: Black Stalemated"); }
+
+    else if (code == 5){ ClientMessage("Black won: White Flagged"); }
+    else if (code == 6){ ClientMessage("White won: Black Flagged"); }
+
+    else if (code == 7){ ClientMessage("Black Won: White Resigned"); }
+    else if (code == 8){ ClientMessage("White: Black Resigned"); }
+}
 
     //-----  Helper Functions ------//
 void MainWindow::createGamePage(bool w, bool isOnline){
@@ -104,8 +120,10 @@ void MainWindow::createGamePage(bool w, bool isOnline){
     labelBoard->show();
 
     game = std::make_unique<chess_game>(labelBoard, isWhite, 10, 1, isOnline); // creates game + loads board //
-    connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove);
+    connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove_G);
+    connect(game.get(), &chess_game::player_checkmated, this, &MainWindow::onCheckmated_G);
     connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
+
     connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this]() {
         QString playerMsg = ui->gameChatEnter->text();
         ui->gameChatEnter->clear();
@@ -114,11 +132,15 @@ void MainWindow::createGamePage(bool w, bool isOnline){
     ui->gameChatEnter->setMaxLength(150); // max 150 characters per player message //
 }
 
-///------------------------------------- MainWindow Slots  -------------------------------------///
+///--------------------------- MainWindow Slots from  GameLogic  ---------------------------///
 
-void MainWindow::onPlayerMove(const QString move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
-void MainWindow::onPlayerMessage(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
-void MainWindow::onErrorMessage(QString msg){ ClientMessage("ServerCode ~ " + msg); }
+void MainWindow::onPlayerMove_G(const QString move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
+void MainWindow::onCheckmated_G(int c){
+    if (!isOnline){ onReceiveCheckmated_C(c); }
+}
+
+void MainWindow::onPlayerMessage_C(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
+void MainWindow::onErrorMessage_C(QString msg){ ClientMessage("ServerError ~ " + msg); }
 
 ///-------------------------------------- Server UI --------------------------------------///
 
@@ -135,7 +157,7 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
     ui->setupUi(this);
 
     /////////////////////   Client   /////////////////////
-    if (isServer == false){
+    if (!isServer){
         client = std::make_unique<Client>(this);
 
         ui->mainStack->setCurrentWidget(ui->loginPage);
@@ -156,18 +178,20 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
         });
 
         // Client-Server Network Setup //
-        connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected);
+        connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected_C);
         connect(client.get(), &Client::clientMessage, this, &MainWindow::ClientMessage);
 
-        connect(client.get(), &Client::registerUser_S, this, &MainWindow::onRegisterUser);
-        connect(client.get(), &Client::loginUser_S, this, &MainWindow::onLoginUser);
+        connect(client.get(), &Client::registerUser_S, this, &MainWindow::onRegisterUser_C);
+        connect(client.get(), &Client::loginUser_S, this, &MainWindow::onLoginUser_C);
 
-        connect(client.get(), &Client::createGameSession_S, this, &MainWindow::onCreateGameSession);
-        connect(client.get(), &Client::joinGameSession_S, this, &MainWindow::onJoinGameSession);
+        connect(client.get(), &Client::createGameSession_S, this, &MainWindow::onCreateGameSession_C);
+        connect(client.get(), &Client::joinGameSession_S, this, &MainWindow::onJoinGameSession_C);
 
-        connect(client.get(), &Client::sendMove_S, this, &MainWindow::onReceiveMove);
-        connect(client.get(), &Client::sendPlayerMessage_S, this, &MainWindow::onPlayerMessage);
-        connect(client.get(), &Client::sendErrorMessage_S, this, &MainWindow::onErrorMessage);
+        connect(client.get(), &Client::sendMove_S, this, &MainWindow::onReceiveMove_C);
+        connect(client.get(), &Client::sendCheckmated_S, this, &MainWindow::onReceiveCheckmated_C);
+
+        connect(client.get(), &Client::sendPlayerMessage_S, this, &MainWindow::onPlayerMessage_C);
+        connect(client.get(), &Client::sendErrorMessage_S, this, &MainWindow::onErrorMessage_C);
 
     }
     //////////////////////   Server   /////////////////////

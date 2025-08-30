@@ -23,9 +23,12 @@ public:
 
     void createGameSession_S(QString gameID);
     void joinGameSession_S(bool gameFound, bool isWhite);
+
     void sendMove_S(QString move);
+    void sendCheckmated_S(QString isWhite);
+
     void sendPlayerMessage_S(QString playerName, QString msg);
-    void sendErrorMessage_S(QString msg, bool white);
+    void sendErrorMessage_S(QString msg);
 
 private:
     QTcpSocket* socket;
@@ -45,7 +48,10 @@ void loginUser(ClientWrap* self, QString user, QString pass);
 
 void createGameSession(ClientWrap* client, bool isWhite); // asks server to make game session //
 void joinGameSession(ClientWrap* client, QString joinCode); // asks server for client to join existing game //
+
 void moveReceived(QString gameID,  bool isWhite, QString move); // sends received move to server //
+void checkmatedReceived(QString gameID, QString isWhite);
+
 void playerMessageReceived(QString gameID, QString playerName, QString msg);
 
 };

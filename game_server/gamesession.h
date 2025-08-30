@@ -11,10 +11,12 @@ public:
     GameSession(QString gameID, ClientWrap* player1, bool isWhite);
     ~GameSession();
 
+    bool validate_players();
     void validate_move(bool isWhite, QString move);
     QString flip_move(QString move);
 
     void sendPlayerMessage(QString playerName, QString msg);
+    void sendErrorMessage(QString msg);
     void setPlayer2(ClientWrap* player){ player2 = player; }
 
     bool player1_color(){ return isWhite; }
@@ -30,6 +32,8 @@ private:
     ClientWrap* player2 = nullptr;
 
     std::unique_ptr<board_state> server_game;
+
+    void check_checkmated();
 
 signals:
 

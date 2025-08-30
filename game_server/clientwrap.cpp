@@ -36,6 +36,9 @@ void ClientWrap::receiveMessage(const QString& msg) {
     else if (parts[0] == "SEND_MOVE" && parts.size() >= 4) {
         emit moveReceived(parts[1], (parts[2] == "1 "), parts[3]); // gameID, move, isWhite //
     }
+    else if (parts[0] == "SEND_CHECKMATED" && parts.size() >= 3) {
+        emit checkmatedReceived(parts[1], parts[2]); // gameID, move, isWhite //
+    }
     else if (parts[0] == "SEND_PLAYER_MESSAGE" && parts.size() >= 4) {
         emit playerMessageReceived(parts[1], parts[2], parts[3]); // gameID, playerName, msg //
     }
@@ -73,16 +76,19 @@ void ClientWrap::createGameSession_S(QString gameID){
 void ClientWrap::joinGameSession_S(bool gameFound, bool isWhite){
     sendMessage("JOIN_GAME_S|" + QString(gameFound ? "1" : "0") + "|" + QString(isWhite ? "1" : "0") + "\n");
 }
+
 void ClientWrap::sendMove_S(QString move){
     sendMessage("SEND_PLAYER_MOVE_S|" + move + "\n");
 }
+void ClientWrap::sendCheckmated_S(QString isWhite){
+    sendMessage("SEND_CHECKMATED_S|" + isWhite + "\n");
+}
+
 void ClientWrap::sendPlayerMessage_S(QString playerName, QString msg){
     sendMessage("SEND_PLAYER_MESSAGE_S|" + playerName + "|" + msg + "\n");
 }
-void ClientWrap::sendErrorMessage_S(QString msg, bool white){
+void ClientWrap::sendErrorMessage_S(QString msg){
     if (msg != ""){
-        if (white){ msg = "White: " + msg; }
-        else { msg = "Black: " + msg; }
         sendMessage("SEND_ERROR_MESSAGE_S|" + msg + "\n");
     }
 }

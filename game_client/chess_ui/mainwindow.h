@@ -22,6 +22,7 @@ private:
     bool isWhite;
 
     QString playerName;
+    bool isOnline = false;
 
     void createGamePage(bool isWhite, bool isOnline);
 
@@ -29,21 +30,24 @@ private slots:
     void ClientMessage(const QString msg);
 
     // Received by Game //
-    void onPlayerMove(const QString move, const bool isWhite);
+    void onPlayerMove_G(const QString move, const bool isWhite);
+    void onCheckmated_G(int code);
 
     // Recieved by Client //
-    void onClientConnected();
-    void onClientDisconnected();
+    void onClientConnected_C();
+    void onClientDisconnected_C();
 
-    void onRegisterUser(QString code);
-    void onLoginUser(QString code);
+    void onRegisterUser_C(QString code);
+    void onLoginUser_C(QString code);
 
-    void onCreateGameSession(QString gameID);
-    void onJoinGameSession(bool joined, bool isWhite);
+    void onCreateGameSession_C(QString gameID);
+    void onJoinGameSession_C(bool joined, bool isWhite);
 
-    void onReceiveMove(QString move);
-    void onPlayerMessage(QString playerName, QString msg);
-    void onErrorMessage(QString msg);
+    void onReceiveMove_C(QString move);
+    void onReceiveCheckmated_C(int code);
+
+    void onPlayerMessage_C(QString playerName, QString msg);
+    void onErrorMessage_C(QString msg);
 
     // Server Function Slots //
     void ServerMessage(const QString msg);

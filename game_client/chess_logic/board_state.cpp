@@ -16,12 +16,25 @@ void board_state::make_piece(QString pieceCode, int row, int col){
 
     emit make_piece_label(pieceCode, row, col);
     board[row][col] = pieceCode;
+    if (pieceCode.at(0) == 'w'){ white_pieces.push_back(piece_board[row][col]); }
+    else if (pieceCode.at(0) == 'b'){ black_pieces.push_back(piece_board[row][col]); }
 }
 void board_state::capture_piece(int row, int col){
+    Piece* delPiece = piece_board[row][col];
+    if (delPiece->get_color() == true){ // removes from piece vectors of white or black //
+        white_pieces.erase(
+        std::remove(white_pieces.begin(), white_pieces.end(), piece_board[row][col]),
+        white_pieces.end());
+    }
+    else {
+        black_pieces.erase(
+        std::remove(black_pieces.begin(), black_pieces.end(), piece_board[row][col]),
+        black_pieces.end());
+    }
     board[row][col] = "";
     delete piece_board[row][col];
     piece_board[row][col] = nullptr;
-    if (!isServer){ emit capture_piece_label(row, col); }
+    emit capture_piece_label(row, col);
 }
 
 //----------------------------------- Handles Piece Interaction -----------------------------------------//
@@ -99,10 +112,8 @@ void board_state::select_piece(int row, int col){
             }
         }
     }
-    if (!isServer){ // server game has no ui //
-        emit highlight_tiles(s_move_list, true); // updates labels to highlight //
-        emit highlight_piece(row, col, true);
-    }
+    emit highlight_tiles(s_move_list, true); // updates labels to highlight //
+    emit highlight_piece(row, col, true);
 
 }
 void board_state::deselect_piece(){
@@ -126,7 +137,7 @@ void board_state::send_move_request(int p_row, int p_col, int new_row, int new_c
     if (!isOnline) {
         move_piece(p_row, p_col, new_row, new_col);
     }
-    else if (isWhite == white_turn && isOnline && !isServer){ // Must validate move with server to move //
+    else if (isWhite == white_turn && isOnline){ // Must validate move with server to move //
         int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
         QString move = QString::number(moveInt);
         if (moveInt < 1000){ move = "0" + move; } // no 0 in front of int //
@@ -144,6 +155,7 @@ void board_state::receive_move(QString move){
 
     move_piece(from_row, from_col, to_row, to_col);
 }
+void board_state::send_checkmate_request(int code){ emit checkmated(code); }
 
 void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
 
@@ -163,11 +175,11 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
 
     board[new_row][new_col] = board[p_row][p_col];
     board[p_row][p_col] = "";
-    if (!isServer){ emit move_piece_label(p_row, p_col, new_row, new_col); }
+    emit move_piece_label(p_row, p_col, new_row, new_col);
 
     // Pawn Mechancis (en passant and promotion) //
     if (piece_board[new_row][new_col]->get_piece_type().at(1) == 'P'){pawn_mechanics(p_row, p_col, new_row, new_col, capture);}
-    qDebug() << "c";
+
     // Castling mechanics //
     if (piece_board[new_row][new_col]->get_piece_type().at(1) == 'K'){ // right side castle check //
         if (new_col - p_col > 1){
@@ -175,6 +187,7 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
                 if (board[new_row][c].at(1) == 'R'){
                     // finds the right rook and castles it //
                     move_piece(new_row, c, new_row, new_col-1);
+                    return;
                 }
             }
         }
@@ -183,18 +196,24 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
                 if (board[new_row][c].at(1) == 'R'){
                     // finds the left rook and castles it //
                     move_piece(new_row, c, new_row, new_col+1);
+                    return;
                 }
             }
         }
-        else{
-            // non-castling king moves switches turn //
-            switch_turn(new_row, new_col);
-        }
     }
-    else{
-        // non king moves auto switch moves //
-        switch_turn(new_row, new_col);
+    // dehighlights old moved piece label //
+    if (last_tile != std::make_pair(-1, -1) && last_moved){
+        emit highlight_piece(last_moved->get_row(), last_moved->get_col(), false);
+        emit highlight_tiles({{last_tile.first, last_tile.second}}, false);
     }
+    // highlights new moved //
+    emit highlight_piece(new_row, new_col, true);
+    emit highlight_tiles({{p_row, p_col}}, true);
+    last_tile = {p_row, p_col};
+    last_moved = piece_board[new_row][new_col]; // tracks last move //
+
+    // non castling switch moves //
+    switch_turn();
 }
 void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, bool capture){
 
@@ -235,17 +254,15 @@ void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, boo
 
 //----------------------------------- Handles Board States -----------------------------------------//
 
-void board_state::switch_turn(int row, int col){
-    last_moved = piece_board[row][col]; // tracks enemies last move //
+void board_state::switch_turn(){
     deselect_piece();
     in_check = check_if_in_check();
 
     white_turn = !white_turn; // switches turn //
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
-
     emit check_king_labels(white_turn, in_check); // checks king labels //
-    // to do emit checkmate_label(white_turn);
+    if (in_check && check_if_checkmated()){ send_checkmate_request(checkmateCode); }
 }
 
 bool board_state::check_if_in_check(){
@@ -269,11 +286,42 @@ bool board_state::check_if_in_check(){
     }
     else { return false; } // is empty //
 }
-bool board_state::check_if_checkmate(){
-    if (s_move_list.empty()){ // need to check every piece cannot move and king in check //
-        return true;
+bool board_state::check_if_checkmated(){
+    // Check if white king got checkmated //
+    if (white_turn){
+        // white king cant move //
+        if (!white_king->get_moveset(board, piece_board, last_moved).empty()) { return false; }
+
+        std::vector<std::pair<int, int>> w_moveset;
+        // checks all white piece movesets if can block //
+        for (Piece* w_piece : white_pieces){
+            w_moveset = w_piece->get_moveset(board, piece_board, last_moved);
+            for (const auto& block_move : block_move_list) { // if move in block_move, then its not checkmate //
+                if (std::find(w_moveset.begin(), w_moveset.end(), block_move) != w_moveset.end()) {
+                    return false; // found a piece that can block in its moveset //
+                }
+            }
+        }
+        checkmateCode = 1;
     }
-    return false;
+    // Check if black got checkmated //
+    else {
+        // black king cant move //
+        if (!black_king->get_moveset(board, piece_board, last_moved).empty()) { return false; }
+
+        std::vector<std::pair<int, int>> b_moveset;
+        // checks all black piece movesets if can block //
+        for (Piece* b_piece : black_pieces){
+            b_moveset = b_piece->get_moveset(board, piece_board, last_moved);
+            for (const auto& block_move : block_move_list) { // if move in block_move, then its not checkmate //
+                if (std::find(b_moveset.begin(), b_moveset.end(), block_move) != b_moveset.end()) {
+                    return false; // found a piece that can block in its moveset //
+                }
+            }
+        }
+        checkmateCode = 2;
+    }
+    return true; // cant escape check //
 }
 void board_state::setup_board(){
     if (!isWhite){ // flips the board if black perspective //
@@ -303,7 +351,7 @@ void board_state::setup_board(){
 
 //----------------------------------- Class Defaults -----------------------------------------//
 
-board_state::board_state(bool isWhite, bool isOnline, bool isServer) : isWhite(isWhite), isOnline(isOnline), isServer(isServer) {}
+board_state::board_state(bool isWhite, bool isOnline) : isWhite(isWhite), isOnline(isOnline) {}
 board_state::~board_state(){
     for (int row = 0; row < 8; ++row) {
         // Deletes all piece objects //
@@ -351,5 +399,4 @@ int board_state::validate_move(QString move){
 
     return 0; // valid move
 }
-
-
+int board_state::validate_checkmated(){ return checkmateCode; }

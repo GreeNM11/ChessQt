@@ -9,7 +9,7 @@ class board_state : public QObject
 {
     Q_OBJECT
 public:
-    board_state(bool isWhite, bool isOnline, bool isServer);
+    board_state(bool isWhite, bool isOnline);
     ~board_state();
 
     void setup_board();
@@ -22,6 +22,7 @@ public:
 
     // Server Validation //
     int validate_move(QString move); // returns an error number //
+    int validate_checkmated();
     void server_move(QString move){ receive_move(move); }
 
 private:
@@ -44,16 +45,21 @@ private:
 
     Piece* selected_piece = nullptr;
     Piece* last_moved = nullptr; // keeps track of last moved piece for en peassant //
+    std::pair<int,int> last_tile = std::make_pair(-1, -1);
     std::vector<std::pair<int,int>> s_move_list = {}; // vector selected piece's available moves //
     std::vector<std::pair<int,int>> block_move_list = {}; // vector of moves that get player out of check //
+
+    std::vector<Piece*>white_pieces;
+    std::vector<Piece*>black_pieces;
 
     King* white_king;
     King* black_king;
     int in_check = false; // 0 is no, 1 is check, 2 is double check //
-    bool checkmate = false;
+    int checkmateCode = 0; // 0 (none), 1 (white checkmated), 2 (black checkmated), 3 (white stale), 4 (black stale) //
 
     // Handles Sending & Request from Server //
     void send_move_request(int p_row, int p_col, int new_row, int new_col);
+    void send_checkmate_request(int checkmateCode);
 
     // Object Functions //
     void select_piece(int row, int col);
@@ -66,9 +72,9 @@ private:
     void pawn_mechanics(int old_row, int old_col, int row, int col, bool capture);
 
     // Game State Functions //
-    void switch_turn(int row, int col);
+    void switch_turn();
     bool check_if_in_check();
-    bool check_if_checkmate();
+    bool check_if_checkmated();
 
 signals:
     // Signals to chess_game //
@@ -80,7 +86,7 @@ signals:
     void highlight_piece(int row, int col, bool turn);
 
     void check_king_labels(bool white_turn, bool in_check);
-    void checkmate_label(bool white_turn);
+    void checkmated(int checkmateCode);
 
     void send_player_move(QString move, bool isWhite);
     void clientMessage(QString msg);
