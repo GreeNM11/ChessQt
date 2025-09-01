@@ -153,12 +153,14 @@ void MainWindow::ServerMessage(const QString message) {
 }
 
 ///-------------------------------------- Main Window --------------------------------------///
-MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , ui(new Ui::ChessQt){
+MainWindow::MainWindow(bool isServer, bool isRemote, QWidget *parent)
+    : QMainWindow(parent) , ui(new Ui::ChessQt){
     ui->setupUi(this);
 
     /////////////////////   Client   /////////////////////
     if (!isServer){
-        client = std::make_unique<Client>(this);
+        if (isRemote){ client = std::make_unique<Client>(this, remoteIP, port); }
+        else         { client = std::make_unique<Client>(this, localIP, port); }
 
         ui->mainStack->setCurrentWidget(ui->loginPage);
 
@@ -200,7 +202,7 @@ MainWindow::MainWindow(bool isServer, QWidget *parent) : QMainWindow(parent) , u
         ui->boardChatFrame->hide();
         ui->boardChat->hide();
 
-        server = std::make_unique<Server>(this);
+        server = std::make_unique<Server>(this, port);
 
         connect(server.get(), &Server::newMessage, this, &MainWindow::ServerMessage);
         server->emitServerStatus();

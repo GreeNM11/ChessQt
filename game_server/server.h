@@ -14,7 +14,7 @@ class Server : public QObject {
     Q_OBJECT
 
 public:
-    explicit Server(QObject *parent = nullptr);
+    explicit Server(QObject *parent = nullptr, int port = 7575);
 
     void emitServerStatus();
     void createDB();
@@ -36,6 +36,8 @@ private slots:
     void serverMessage(QString msg);
 
 private:
+    int port;
+
     QTcpServer *server;
     std::unique_ptr<database_chess> database;
 

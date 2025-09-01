@@ -10,7 +10,7 @@ class Client : public QObject {
     Q_OBJECT
 
 public:
-    explicit Client(QObject *parent = nullptr);
+    explicit Client(QObject *parent = nullptr, QString ip = "", int port = 0);
 
     // Send Through Socket //
     void registerUser(QString user, QString pass);

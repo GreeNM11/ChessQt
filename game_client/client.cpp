@@ -1,13 +1,13 @@
 #include "game_client/client.h"
 #include <QDebug>
 
-Client::Client(QObject *parent) : QObject(parent) {
+Client::Client(QObject *parent, QString ip, int port) : QObject(parent) {
     socket = new QTcpSocket(this);
     connect(socket, &QTcpSocket::connected, this, &Client::onConnect);
     connect(socket, &QTcpSocket::disconnected, this, &Client::onConnect);
     connect(socket, &QTcpSocket::readyRead, this, &Client::onReadyRead);
 
-    socket->connectToHost("127.0.0.1", 7575);
+    socket->connectToHost(ip, port);
 }
 void Client::onConnect() { emit connectedToServer(); }
 void Client::onDisconnect() { emit disconnectedToServer(); }

@@ -9,9 +9,13 @@
 class MainWindow : public QMainWindow{
     Q_OBJECT
 public:
-    MainWindow(bool isServer, QWidget *parent = nullptr);
+    MainWindow(bool isServer, bool isRemote, QWidget *parent = nullptr);
     ~MainWindow();
 private:
+    const QString localIP = "127.0.0.1";
+    const QString remoteIP = "35.224.252.245"; // external IP - from chessqt-server GCP //
+    const int port = 7575;
+
     Ui::ChessQt* ui;
     std::unique_ptr<Client> client;
     std::unique_ptr<Server> server;

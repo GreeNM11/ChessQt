@@ -11,11 +11,11 @@ void Server::createDB(){
     database->connect();
 }
 void Server::emitServerStatus(){
-    if (!server->listen(QHostAddress::Any, 7575)) {
+    if (!server->listen(QHostAddress::Any, port)) {
         serverMessage("❌Server failed to start");
     }
     else {
-        serverMessage("✅Server Started at port 7575");
+        serverMessage("✅Server Started at port " + QString::number(port));
     }
 }
 
@@ -49,6 +49,7 @@ void Server::registerUser(ClientWrap* client, QString user, QString pass){
 void Server::loginUser(ClientWrap* client, QString user, QString pass){
     client->loginUser_S(database->loginUser(user, pass));
 }
+
 // ---------------------- Chess Game Session Functions ---------------------- //
 
 void Server::newGameSession(ClientWrap* client, bool isWhite){
@@ -81,7 +82,7 @@ void Server::playerMessageReceived(QString gameID, QString playerName, QString m
 
 // --------------------------- Default Functions --------------------------- //
 
-Server::Server(QObject *parent) : QObject(parent), server(new QTcpServer(this)) {
+Server::Server(QObject *parent, int port) : QObject(parent), port(port), server(new QTcpServer(this)) {
     connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
 }
 
