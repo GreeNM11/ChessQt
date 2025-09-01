@@ -320,7 +320,6 @@ std::vector<std::pair<int,int>>Pawn::get_moveset(const QString board[8][8], Piec
 
     int direction = 1;
     if (isWhite ^ !playerIsWhite){direction = -1;}
-
     int up_one = row+direction;
 
     if (board[up_one][col] == ""){ // forward moves //
@@ -330,21 +329,23 @@ std::vector<std::pair<int,int>>Pawn::get_moveset(const QString board[8][8], Piec
         }
     }
     // capturing moves //
+
     if (col+1 < 8){ // right side scenario //
-        if (board[up_one][col+1].at(0) == opposite){
+        if (board[up_one][col+1] != "" && board[up_one][col+1].at(0) == opposite){
             moveset.push_back(std::make_pair(up_one, col+1));
         }
-        else if (board[row][col+1] == opposite + 'P' && p_board[row][col+1] == last_moved){ // en passant //
+        else if (board[row][col+1] == opposite + 'P' && last_moved != nullptr && p_board[row][col+1] == last_moved){ // en passant //
             if (last_moved->get_move_twice() == true){
                 moveset.push_back(std::make_pair(up_one, col+1));
             }
         }
     }
+
     if (col-1 >= 0){ // left side scenario //
-        if (board[up_one][col-1].at(0) == opposite){
+        if (board[up_one][col-1] != "" && board[up_one][col-1].at(0) == opposite){
             moveset.push_back(std::make_pair(up_one, col-1));
         }
-        else if (board[row][col-1] == opposite + 'P' && p_board[row][col-1] == last_moved){
+        else if (board[row][col-1] == opposite + 'P' && last_moved != nullptr && p_board[row][col-1] == last_moved){
             if (last_moved->get_move_twice() == true){
                 moveset.push_back(std::make_pair(up_one, col-1));
             }
