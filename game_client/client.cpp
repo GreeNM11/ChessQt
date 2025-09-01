@@ -6,11 +6,16 @@ Client::Client(QObject *parent, QString ip, int port) : QObject(parent) {
     connect(socket, &QTcpSocket::connected, this, &Client::onConnect);
     connect(socket, &QTcpSocket::disconnected, this, &Client::onConnect);
     connect(socket, &QTcpSocket::readyRead, this, &Client::onReadyRead);
-
+    qDebug() << ip + " : " + QString::number(port);
     socket->connectToHost(ip, port);
 }
-void Client::onConnect() { emit connectedToServer(); }
-void Client::onDisconnect() { emit disconnectedToServer(); }
+void Client::onConnect() { connected_to_server = true; emit connectedToServer();}
+void Client::onDisconnect() { connected_to_server = false; emit disconnectedToServer();}
+
+void Client::serverStatus(){
+    if (connected_to_server){ emit connectedToServer(); }
+    else { emit disconnectedToServer(); }
+}
 
 // ---------------------- Received from ClientWrap + Server ---------------------- //
 void Client::onReadyRead() {
@@ -52,35 +57,37 @@ void Client::receiveMessage(const QString& msg) {
     }
 }
 // ---------------------- Senders to ClientWrap + Server ---------------------- //
-void Client::sendMessage(const QString &message) {
+bool Client::sendMessage(const QString &message) {
     // send to server clientwrap through socket //
     if (socket && socket->state() == QAbstractSocket::ConnectedState) {
         QByteArray data = message.toUtf8();
         socket->write(data);
         socket->flush();
+        return true;
     }
+    return false;
 }
 
-void Client::registerUser(QString user, QString pass){
-    sendMessage("REGISTER_USER|" + user + "|" + pass + "\n");
+bool Client::registerUser(QString user, QString pass){
+    return (sendMessage("REGISTER_USER|" + user + "|" + pass + "\n"));
 }
-void Client::loginUser(QString user, QString pass){
-    sendMessage("LOGIN_USER|" + user + "|" + pass + "\n");
+bool Client::loginUser(QString user, QString pass){
+    return sendMessage("LOGIN_USER|" + user + "|" + pass + "\n");
 }
 
-void Client::createGameSession(bool isWhite){
-    sendMessage("CREATE_GAME|" + QString(isWhite ? "1" : "0") + "\n");
+bool Client::createGameSession(bool isWhite){
+    return sendMessage("CREATE_GAME|" + QString(isWhite ? "1" : "0") + "\n");
 }
-void Client::joinGameSession(const QString gameID){
-    sendMessage("JOIN_GAME|" + gameID + "\n");
+bool Client::joinGameSession(const QString gameID){
+    return sendMessage("JOIN_GAME|" + gameID + "\n");
 }
-void Client::sendMove(const QString gameID, const QString move, const bool isWhite){
+bool Client::sendMove(const QString gameID, const QString move, const bool isWhite){
     // needs a space before | because it breaks without it //
-    sendMessage("SEND_MOVE|" + gameID + "|" + QString::number(isWhite) + " |" + move + "\n");
+    return sendMessage("SEND_MOVE|" + gameID + "|" + QString::number(isWhite) + " |" + move + "\n");
 }
 
-void Client::sendPlayerMessage(QString gameID, const QString playerName, const QString msg){
-    sendMessage("SEND_PLAYER_MESSAGE|" + gameID + "|" + playerName + "|" + msg + "\n");
+bool Client::sendPlayerMessage(QString gameID, const QString playerName, const QString msg){
+    return sendMessage("SEND_PLAYER_MESSAGE|" + gameID + "|" + playerName + "|" + msg + "\n");
 }
 
 

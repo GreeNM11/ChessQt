@@ -9,7 +9,9 @@ void MainWindow::registerButtonClicked(){
     ui->usernameEnter->clear();
     ui->passwordEnter->clear();
 
-    client->registerUser(user, pass);
+    if(!client->registerUser(user, pass)){
+        onErrorMessage_C("Could not connect to register user");
+    }
 }
 void MainWindow::loginButtonClicked(){
     QString user = ui->usernameEnter->text();
@@ -17,28 +19,39 @@ void MainWindow::loginButtonClicked(){
     ui->usernameEnter->clear();
     ui->passwordEnter->clear();
 
-    client->loginUser(user, pass);
+    if (!client->loginUser(user, pass)){
+        onErrorMessage_C("Could not connect to login user");
+    }
 }
 
 void MainWindow::singleplayerClicked() {
     QString color = isWhite ? "White" : "Black";
-    ClientMessage("Singleplayer Game Created. You are: " + color);
+    ClientMessage("Offline Game Created. You are: " + color);
 
-    isWhite = true;
     createGamePage(isWhite, false);
 }
 void MainWindow::hostGameClicked() {
-    QString color = isWhite ? "White" : "Black";
-    ClientMessage("Hosting Game.. You are: " + color);
-    playerName = color;
+    // sends to client < clientWrap < Server to make a game session //
+    if (!client->createGameSession(isWhite)){
+        onErrorMessage_C(" Could not connect to host game");
+    }
+    else{
+        QString color = isWhite ? "White" : "Black";
+        ClientMessage("Hosting Game.. You are: " + color);
+        playerName = color;
 
-    isWhite = true;
-    createGamePage(isWhite, true);
-
-    client->createGameSession(isWhite); // sends to client < clientWrap < Server to make a game session //
+        createGamePage(isWhite, true);
+    }
 }
 void MainWindow::joinGameClicked() {
     ui->mainStack->setCurrentWidget(ui->joinGamePage); // sets ui //
+    connect(ui->joinGameEnter, &QLineEdit::returnPressed, this, [this]() {
+        gameID = ui->joinGameEnter->text();
+        ui->joinGameEnter->clear();
+        if(!client->joinGameSession(gameID)){
+            onErrorMessage_C("Could not connect to join game");
+        }
+    });
 }
 void MainWindow::backMenuClicked(){
     ui->mainStack->setCurrentWidget(ui->menuPage);
@@ -55,12 +68,10 @@ void MainWindow::ClientMessage(const QString msg){
 }
 
 void MainWindow::onClientConnected_C() {
-    ui->ClientStatus->clear();
-    ui->ClientStatus->append("<span style='color:green;'>Server Status: Connected</span>");
+    ClientMessage("✅Server Status: Connected");
 }
 void MainWindow::onClientDisconnected_C() {
-    ui->ClientStatus->clear();
-    ui->ClientStatus->append("<span style='color:red;'>Server Status: Disconnected</span>");
+    ClientMessage("❌Server Status: Disconnected");
 }
 
 void MainWindow::onRegisterUser_C(QString code){
@@ -92,7 +103,7 @@ void MainWindow::onJoinGameSession_C(bool joined, bool w){
         ClientMessage("You are " + color);
     }
     else{
-        ClientMessage("Retry Join Code");
+        ClientMessage("❌Invalid Join Code");
     }
 }
 
@@ -111,7 +122,7 @@ void MainWindow::onReceiveCheckmated_C(int code){
     else if (code == 8){ ClientMessage("White: Black Resigned"); }
 }
 
-    //-----  Helper Functions ------//
+//-----  Helper Functions ------//
 void MainWindow::createGamePage(bool w, bool isOnline){
     isWhite = w;
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
@@ -141,7 +152,7 @@ void MainWindow::onCheckmated_G(int c){
 }
 
 void MainWindow::onPlayerMessage_C(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
-void MainWindow::onErrorMessage_C(QString msg){ ClientMessage("ServerError ~ " + msg); }
+void MainWindow::onErrorMessage_C(QString msg){ ClientMessage("❌ServerError ~ " + msg); }
 
 ///-------------------------------------- Server UI --------------------------------------///
 
@@ -175,12 +186,6 @@ MainWindow::MainWindow(bool isServer, bool isRemote, QWidget *parent)
         connect(ui->JoinGameButton, &QPushButton::clicked, this, &MainWindow::joinGameClicked);
         connect(ui->backMenuButton, &QPushButton::clicked, this, &MainWindow::backMenuClicked);
 
-        connect(ui->joinGameEnter, &QLineEdit::returnPressed, this, [this]() {
-            gameID = ui->joinGameEnter->text();
-            ui->joinGameEnter->clear();
-            client->joinGameSession(gameID);
-        });
-
         // Client-Server Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected_C);
         connect(client.get(), &Client::clientMessage, this, &MainWindow::ClientMessage);
@@ -197,6 +202,7 @@ MainWindow::MainWindow(bool isServer, bool isRemote, QWidget *parent)
         connect(client.get(), &Client::sendPlayerMessage_S, this, &MainWindow::onPlayerMessage_C);
         connect(client.get(), &Client::sendErrorMessage_S, this, &MainWindow::onErrorMessage_C);
 
+        //client->serverStatus();
     }
     //////////////////////   Server   /////////////////////
     else{

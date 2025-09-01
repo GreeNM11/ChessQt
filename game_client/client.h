@@ -13,14 +13,15 @@ public:
     explicit Client(QObject *parent = nullptr, QString ip = "", int port = 0);
 
     // Send Through Socket //
-    void registerUser(QString user, QString pass);
-    void loginUser(QString user, QString pass);
+    bool registerUser(QString user, QString pass);
+    bool loginUser(QString user, QString pass);
 
-    void createGameSession(bool isWhite);
-    void joinGameSession(const QString gameIDe);
-    void sendMove(const QString gameID, const QString move, const bool isWhite);
+    bool createGameSession(bool isWhite);
+    bool joinGameSession(const QString gameIDe);
+    bool sendMove(const QString gameID, const QString move, const bool isWhite);
 
-    void sendPlayerMessage(const QString gameID, const QString playerName, const QString msg);
+    bool sendPlayerMessage(const QString gameID, const QString playerName, const QString msg);
+    void serverStatus();
 
     // Receive Through Socket //
     void receiveMessage(const QString& msg);
@@ -32,7 +33,9 @@ private slots:
     void onDisconnect();
 
 private:
-    void sendMessage(const QString &message);
+    bool connected_to_server = false;
+
+    bool sendMessage(const QString &message);
     QTcpSocket *socket;
 
 signals:
