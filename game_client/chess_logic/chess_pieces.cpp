@@ -335,7 +335,6 @@ std::vector<std::pair<int,int>>Pawn::get_moveset(const QString board[8][8], Piec
             moveset.push_back(std::make_pair(up_one, col+1));
         }
         else if (board[row][col+1] == opposite + 'P' && p_board[row][col+1] == last_moved){ // en passant //
-            qDebug() << last_moved->get_piece_type();
             if (last_moved->get_move_twice() == true){
                 moveset.push_back(std::make_pair(up_one, col+1));
             }
