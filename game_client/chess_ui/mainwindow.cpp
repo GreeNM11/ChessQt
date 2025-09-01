@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "QDebug"
 
 ///-------------------------------------- Button Actions  --------------------------------------///
 void MainWindow::registerButtonClicked(){
@@ -146,6 +147,7 @@ void MainWindow::onErrorMessage_C(QString msg){ ClientMessage("ServerError ~ " +
 
 void MainWindow::ServerMessage(const QString message) {
     ui->ServerLog->append(message);  // adds message and a newline //
+    qDebug() << message;
 
     QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
     cursor.movePosition(QTextCursor::End);
