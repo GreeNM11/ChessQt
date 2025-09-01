@@ -208,32 +208,33 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
 
 //-------------------------------------------------------------------------------------------------------------//
     // Checks if enemy king covers, 8 tiles //
+    QString opposite_king = QString(opposite) + "K";
     bool pawn_check = false;
-    if (row >= 0 && col+1 < 8 &&       board[row-1][col+1] == (opposite + 'K')){
+    if (row-1 >= 0 && col+1 < 8 &&       board[row-1][col+1] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (row >= 0 &&               board[row-1][col  ] == (opposite + 'K')){
+    else if (row-1 >= 0 &&               board[row-1][col  ] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (row >= 0 && col-1 >= 0 && board[row-1][col-1] == (opposite + 'K')){
+    else if (row-1 >= 0 && col-1 >= 0 && board[row-1][col-1] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (row < 8 && col+1 < 8 &&   board[row+1][col+1] == (opposite + 'K')){
+    else if (row+1 < 8 && col+1 < 8 &&   board[row+1][col+1] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (row < 8 &&                board[row+1][col  ] == (opposite + 'K')){
+    else if (row+1 < 8 &&                board[row+1][col  ] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (row < 8 && col-1 >= 0 &&  board[row+1][col-1] == (opposite + 'K')){
+    else if (row+1 < 8 && col-1 >= 0 &&  board[row+1][col-1] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }
-    else if (col-1 >= 0 &&             board[row  ][col-1] == (opposite + 'K')){
+    else if (col-1 >= 0 &&             board[row  ][col-1] == opposite_king){
         check_count += 1;
         pawn_check = true;
     }

@@ -25,6 +25,7 @@ void GameSession::validate_move(bool white_move, QString move){
             player1->sendMove_S(w_move);
             player2->sendMove_S(flip_move(w_move));
             check_checkmated();
+            return;
         }
         else if (returnCode == 1){
             ErrorMessage = "❌Received move out of bounds | " + move;
@@ -43,7 +44,6 @@ void GameSession::validate_move(bool white_move, QString move){
         }
         sendErrorMessage(ErrorMessage);
     }
- // black flips white move //
 }
 void GameSession::check_checkmated(){
     if (!validate_players()){ return; }

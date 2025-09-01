@@ -145,9 +145,7 @@ void board_state::send_move_request(int p_row, int p_col, int new_row, int new_c
     }
 }
 void board_state::receive_move(QString move){
-
     // Decodes String into 4 integers //
-
     int from_row = move.at(0).digitValue();
     int from_col = move.at(1).digitValue();
     int to_row = move.at(2).digitValue();
