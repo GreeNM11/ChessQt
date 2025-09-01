@@ -218,17 +218,17 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
 void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, bool capture){
 
     // Checks Doueble First move, Pawn Promotion, En peassant //
-        qDebug() << "1s";
+
     bool promote = false;
     QChar pawn_color = piece_board[row][col]->get_piece_type().at(0);
     QString selected_piececode;
-    qDebug() << "a";
+
     int white_promotion_row;
     int black_promotion_row;
 
     // Checks if Pawn Moved 2 Squsres //
     if (std::abs(old_row - row) > 1){ piece_board[row][col]->set_move_twice(); }
-    qDebug() << "b";
+
     // Checks Promotion //
     if (isWhite){ white_promotion_row = 0; black_promotion_row = 7; }
     else { white_promotion_row = 7; black_promotion_row = 0; }
