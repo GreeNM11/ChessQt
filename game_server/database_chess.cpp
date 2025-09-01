@@ -13,7 +13,7 @@ bool database_chess::connect() {
     db.setHostName("localhost");
     db.setPort(7598);
     db.setDatabaseName(dbName); // your DB name
-    db.setUserName("postgres");
+    db.setUserName("lindanny75");
     db.setPassword("lindanny75sql");
 
     if (!db.open()) {
