@@ -1,5 +1,5 @@
 #include "gamesession.h"
-
+#include <QDebug>
 bool GameSession::validate_players(){
     if (!player1 && !player2){ return false; }
     if(!player1){

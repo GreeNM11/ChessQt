@@ -1,5 +1,5 @@
 #include "board_state.h"
-
+#include <QDebug>
 //----------------------------------- Handles Object Memory  -----------------------------------------//
 
 void board_state::make_piece(QString pieceCode, int row, int col){
