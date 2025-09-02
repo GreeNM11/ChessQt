@@ -1,5 +1,5 @@
 #include "chess_pieces.h"
-
+#include <QDebug>
 // --------- // Base Piece Class // -------------------------------------------------------------------------- //
 
 Piece::Piece(QString pieceCode, int row, int col, bool playerIsWhite)
