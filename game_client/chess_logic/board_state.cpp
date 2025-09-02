@@ -163,7 +163,7 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
         capture = true;
         capture_piece(new_row, new_col);
     }
-
+qDebug() << "1a";
     // Updates object board and string board //
     piece_board[new_row][new_col] = piece_board[p_row][p_col];
     piece_board[p_row][p_col] = nullptr;
@@ -174,10 +174,10 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
     board[new_row][new_col] = board[p_row][p_col];
     board[p_row][p_col] = "";
     emit move_piece_label(p_row, p_col, new_row, new_col);
-
+qDebug() << "1b";
     // Pawn Mechancis (en passant and promotion) //
     if (piece_board[new_row][new_col]->get_piece_type().at(1) == 'P'){pawn_mechanics(p_row, p_col, new_row, new_col, capture);}
-
+qDebug() << "1c";
     // Castling mechanics //
     if (piece_board[new_row][new_col]->get_piece_type().at(1) == 'K'){ // right side castle check //
         if (new_col - p_col > 1){
@@ -199,6 +199,7 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
             }
         }
     }
+    qDebug() << "1d";
     // dehighlights old moved piece label //
     if (last_tile != std::make_pair(-1, -1) && last_moved){
         emit highlight_piece(last_moved->get_row(), last_moved->get_col(), false);
@@ -207,9 +208,10 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
     // highlights new moved //
     emit highlight_piece(new_row, new_col, true);
     emit highlight_tiles({{p_row, p_col}}, true);
+    qDebug() << "1e";
     last_tile = {p_row, p_col};
     last_moved = piece_board[new_row][new_col]; // tracks last move //
-
+    qDebug() << "1f";
     // non castling switch moves //
     switch_turn();
 }
@@ -255,12 +257,14 @@ void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, boo
 void board_state::switch_turn(){
     deselect_piece();
     in_check = check_if_in_check();
-
+qDebug() << "1g";
     white_turn = !white_turn; // switches turn //
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
+    qDebug() << "1h";
     emit check_king_labels(white_turn, in_check); // checks king labels //
     if (in_check && check_if_checkmated()){ send_checkmate_request(checkmateCode); }
+    qDebug() << "1i";
 }
 
 bool board_state::check_if_in_check(){

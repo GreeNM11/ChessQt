@@ -23,12 +23,12 @@ void GameSession::validate_move(bool white_move, QString move){
         int returnCode = server_game->validate_move(w_move);
 
         if (returnCode == 0){
-            qDebug() << "6";
+            qDebug() << "1";
             server_game->server_move(w_move);
-            qDebug() << "7";
+            qDebug() << "2";
             player1->sendMove_S(w_move);
             player2->sendMove_S(flip_move(w_move));
-            qDebug() << "8";
+            qDebug() << "3";
             check_checkmated();
             return;
         }
