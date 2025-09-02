@@ -63,6 +63,7 @@ void Server::newGameSession(ClientWrap* client, bool isWhite){
 void Server::joinGameSession(ClientWrap* client, QString gameID){
     if (activeSessions.contains(gameID)){
         GameSession* session = activeSessions.value(gameID);
+        if (!session){ return; }
         session->setPlayer2(client);
         client->joinGameSession_S(true, session->player2_color()); // gameFound | p2 isWhite parameters //
     }
@@ -73,10 +74,13 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
 
 void Server::moveReceived(QString gameID, bool isWhite, QString move){
     GameSession* session = activeSessions.value(gameID);
+    if (!session){ return; }
+    qDebug() << "1";
     session->validate_move(isWhite, move);
 }
 void Server::playerMessageReceived(QString gameID, QString playerName, QString msg){
     GameSession* session = activeSessions.value(gameID);
+    if (!session){ return; }
     session->sendPlayerMessage(playerName, msg);
 }
 

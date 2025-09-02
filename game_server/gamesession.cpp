@@ -1,6 +1,7 @@
 #include "gamesession.h"
 
 bool GameSession::validate_players(){
+    if (!player1 && !player2){ return false; }
     if(!player1){
         player2->sendErrorMessage_S("❌White Player Missing");
         return false;
@@ -13,17 +14,22 @@ bool GameSession::validate_players(){
 }
 void GameSession::validate_move(bool white_move, QString move){
     QString ErrorMessage = "";
-    if (!validate_players()){ return; }
+    qDebug() << "2";
+    if (!validate_players()){ return; qDebug() << "3";}
     else {
         QString w_move = move;
         if (!white_move){ w_move = flip_move(move); }
-
+        qDebug() << "4";
+        if (!server_game){ return; }
         int returnCode = server_game->validate_move(w_move);
-
+        qDebug() << "5";
         if (returnCode == 0){
+            qDebug() << "6";
             server_game->server_move(w_move);
+            qDebug() << "7";
             player1->sendMove_S(w_move);
             player2->sendMove_S(flip_move(w_move));
+            qDebug() << "8";
             check_checkmated();
             return;
         }
@@ -44,13 +50,16 @@ void GameSession::validate_move(bool white_move, QString move){
         }
         sendErrorMessage(ErrorMessage);
     }
+    qDebug() << "done";
 }
 void GameSession::check_checkmated(){
     if (!validate_players()){ return; }
     int code = server_game->validate_checkmated();
+    qDebug() << "9";
     if ( code != 0){
         player1->sendCheckmated_S(QString::number(code));
         player2->sendCheckmated_S(QString::number(code));
+        qDebug() << "10a";
     }
 }
 

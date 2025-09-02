@@ -364,6 +364,7 @@ board_state::~board_state(){
 //----------------------------------- Server Validation -----------------------------------------//
 
 int board_state::validate_move(QString move){
+    if (move.length() < 4){ return 1; }
     int from_row = move.at(0).digitValue();
     int from_col = move.at(1).digitValue();
     int to_row   = move.at(2).digitValue();
@@ -376,7 +377,7 @@ int board_state::validate_move(QString move){
         (to_col < 0 || to_col >= 8)) {
         return 1; // out of bounds //
     }
-
+    qDebug() << "a";
     // Piece existence check //
     if (piece_board[from_row][from_col] == nullptr) { return 2; } // no piece to move //
     Piece* piece = piece_board[from_row][from_col];
@@ -386,7 +387,7 @@ int board_state::validate_move(QString move){
     if (piece->get_color() != white_turn) {
         return 3; // not players turn //
     }
-
+    qDebug() << "b";
     // Generate moveset (without selecting in UI)
     auto moveset = piece->get_moveset(board, piece_board, last_moved);
 
@@ -394,7 +395,7 @@ int board_state::validate_move(QString move){
     if (std::find(moveset.begin(), moveset.end(), std::make_pair(to_row, to_col)) == moveset.end()) {
         return 4; // move not legal for that piece
     }
-
+    qDebug() << "c";
     return 0; // valid move
 }
 int board_state::validate_checkmated(){ return checkmateCode; }
