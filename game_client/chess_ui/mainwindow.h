@@ -23,7 +23,7 @@ private:
     std::unique_ptr<chess_game> game;
     QString gameID;
     QString* opponentID;
-    bool isWhite = true;
+    bool isWhite = false;
 
     QString playerName;
     bool isOnline = false;

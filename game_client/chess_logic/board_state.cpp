@@ -256,7 +256,6 @@ void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, boo
 
 void board_state::switch_turn(){
     deselect_piece();
-    in_check = check_if_in_check();
 qDebug() << "1a";
     white_turn = !white_turn; // switches turn //
 
@@ -275,7 +274,7 @@ bool board_state::check_if_in_check(){
     else if (!white_turn && black_king != nullptr){
         block_move_list = black_king->is_in_check(board);
     }
-    qDebug() << "1b";
+
     if (!block_move_list.empty()){
         if (block_move_list.at(0).first == -1){ // double check case or king guarding square //
             block_move_list.clear();

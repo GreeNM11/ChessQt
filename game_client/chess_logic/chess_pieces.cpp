@@ -137,7 +137,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     std::vector<std::pair<int,int>> check_pieces;
     std::vector<std::pair<int,int>> block_check_list;
     int check_count = 0; // account for double checks //
-qDebug() << "check1";
+
     // Checks all tiles where a queen or rook can be checking //
     for (int i = 0; i < 4; i++){
         moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
@@ -150,7 +150,7 @@ qDebug() << "check1";
         }
         check_pieces.clear();
     }
-    qDebug() << "check2";
+
     if (check_count > 1){return {{-1,-1}};} // returns if double check, cannot be blocked //
 //-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where queen or bishop can be checking //
@@ -181,7 +181,7 @@ qDebug() << "check1";
         }
     }
     if (check_count > 1){return {{-1,-3}};}
-
+    qDebug() << "check3.5";
 //-------------------------------------------------------------------------------------------------------------//
     // Checks the 2 pawn positions that can check //
     int up = 1;
@@ -196,7 +196,7 @@ qDebug() << "check1";
             block_check_list.push_back(std::make_pair(row-up, col-1));
         }
     }
-    else if(same == 'b' && row-up >= 0 && row-up < 8){ // black king scenario //
+    else if(same == 'b' && row+up >= 0 && row+up < 8){ // black king scenario //
         if (col+1 < 8 && board[row+up][col+1] == (opposite + 'P')){
             check_count += 1;
             block_check_list.push_back(std::make_pair(row+up, col+1));
