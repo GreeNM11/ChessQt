@@ -1,5 +1,4 @@
 #include "server.h"
-#include <QDebug>
 
 // ------------------------- Server Side Functions ------------------------- //
 
@@ -75,7 +74,6 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
 void Server::moveReceived(QString gameID, bool isWhite, QString move){
     GameSession* session = activeSessions.value(gameID);
     if (!session){ return; }
-    qDebug() << "1";
     session->validate_move(isWhite, move);
 }
 void Server::playerMessageReceived(QString gameID, QString playerName, QString msg){

@@ -14,15 +14,14 @@ bool GameSession::validate_players(){
 }
 void GameSession::validate_move(bool white_move, QString move){
     QString ErrorMessage = "";
-    qDebug() << "2";
+
     if (!validate_players()){ return; qDebug() << "3";}
     else {
         QString w_move = move;
         if (!white_move){ w_move = flip_move(move); }
-        qDebug() << "4";
         if (!server_game){ return; }
         int returnCode = server_game->validate_move(w_move);
-        qDebug() << "5";
+
         if (returnCode == 0){
             qDebug() << "6";
             server_game->server_move(w_move);

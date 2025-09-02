@@ -121,11 +121,11 @@ void board_state::deselect_piece(){
     // Deselects selected_piece and rids piece highlight //
 
     if (selected_piece != nullptr){ // Server version has no ui to emit to //
-        if (!isServer){ emit highlight_piece(selected_piece->get_row(), selected_piece->get_col(), false); }
+        emit highlight_piece(selected_piece->get_row(), selected_piece->get_col(), false);
         selected_piece = nullptr;
     }
     if (!s_move_list.empty()){
-        if (!isServer){ emit highlight_tiles(s_move_list, false); }// rids old highlighted moves //
+        emit highlight_tiles(s_move_list, false);// rids old highlighted moves //
         s_move_list.clear();
     }
 
@@ -377,17 +377,14 @@ int board_state::validate_move(QString move){
         (to_col < 0 || to_col >= 8)) {
         return 1; // out of bounds //
     }
-    qDebug() << "a";
     // Piece existence check //
     if (piece_board[from_row][from_col] == nullptr) { return 2; } // no piece to move //
     Piece* piece = piece_board[from_row][from_col];
-
 
     // Turn check
     if (piece->get_color() != white_turn) {
         return 3; // not players turn //
     }
-    qDebug() << "b";
     // Generate moveset (without selecting in UI)
     auto moveset = piece->get_moveset(board, piece_board, last_moved);
 
@@ -395,7 +392,7 @@ int board_state::validate_move(QString move){
     if (std::find(moveset.begin(), moveset.end(), std::make_pair(to_row, to_col)) == moveset.end()) {
         return 4; // move not legal for that piece
     }
-    qDebug() << "c";
+
     return 0; // valid move
 }
 int board_state::validate_checkmated(){ return checkmateCode; }
