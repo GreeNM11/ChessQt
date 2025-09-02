@@ -15,7 +15,7 @@ bool GameSession::validate_players(){
 void GameSession::validate_move(bool white_move, QString move){
     QString ErrorMessage = "";
 
-    if (!validate_players()){ return; qDebug() << "3";}
+    if (!validate_players()){ return; }
     else {
         QString w_move = move;
         if (!white_move){ w_move = flip_move(move); }
@@ -23,12 +23,9 @@ void GameSession::validate_move(bool white_move, QString move){
         int returnCode = server_game->validate_move(w_move);
 
         if (returnCode == 0){
-            qDebug() << "1";
             server_game->server_move(w_move);
-            qDebug() << "2";
             player1->sendMove_S(w_move);
             player2->sendMove_S(flip_move(w_move));
-            qDebug() << "3";
             check_checkmated();
             return;
         }
@@ -49,16 +46,13 @@ void GameSession::validate_move(bool white_move, QString move){
         }
         sendErrorMessage(ErrorMessage);
     }
-    qDebug() << "done";
 }
 void GameSession::check_checkmated(){
     if (!validate_players()){ return; }
     int code = server_game->validate_checkmated();
-    qDebug() << "9";
     if ( code != 0){
         player1->sendCheckmated_S(QString::number(code));
         player2->sendCheckmated_S(QString::number(code));
-        qDebug() << "10a";
     }
 }
 

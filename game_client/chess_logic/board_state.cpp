@@ -256,14 +256,11 @@ void board_state::pawn_mechanics(int old_row, int old_col, int row, int col, boo
 
 void board_state::switch_turn(){
     deselect_piece();
-qDebug() << "1a";
     white_turn = !white_turn; // switches turn //
 
     in_check = check_if_in_check(); // always sees if in check, accounts for discoveries //
-    qDebug() << "2a";
     emit check_king_labels(white_turn, in_check); // checks king labels //
     if (in_check && check_if_checkmated()){ send_checkmate_request(checkmateCode); }
-    qDebug() << "2b";
 }
 
 bool board_state::check_if_in_check(){
