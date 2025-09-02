@@ -137,7 +137,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     std::vector<std::pair<int,int>> check_pieces;
     std::vector<std::pair<int,int>> block_check_list;
     int check_count = 0; // account for double checks //
-
+qDebug() << "check1";
     // Checks all tiles where a queen or rook can be checking //
     for (int i = 0; i < 4; i++){
         moves_line(row, col,  direction[i][0], direction[i][1], board, check_pieces);
@@ -150,6 +150,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
         }
         check_pieces.clear();
     }
+    qDebug() << "check2";
     if (check_count > 1){return {{-1,-1}};} // returns if double check, cannot be blocked //
 //-------------------------------------------------------------------------------------------------------------//
     // Checks all tiles where queen or bishop can be checking //
@@ -164,6 +165,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
         }
         check_pieces.clear();
     }
+    qDebug() << "check3";
     if (check_count > 1){return {{-1,-2}};}
 
 //-------------------------------------------------------------------------------------------------------------//
@@ -205,7 +207,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
         }
     }
     if (check_count > 1){return {{-1,-4}};}
-
+qDebug() << "check4";
 //-------------------------------------------------------------------------------------------------------------//
     // Checks if enemy king covers, 8 tiles //
     QString opposite_king = QString(opposite) + "K";
@@ -244,7 +246,7 @@ std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QSt
     }
     if (pawn_check){block_check_list.push_back(std::make_pair(-1, -1));}
     if (check_count > 1){return {{-1,-5}};}
-
+qDebug() << "check5";
     // if block_check_list empty, then no check //
     return block_check_list; // if check count only 1, then returns move list //
 }
