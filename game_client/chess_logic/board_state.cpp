@@ -46,7 +46,7 @@ void board_state::click_piece(int row, int col){
     if (row > 7 || row < 0 || col > 7 || col < 0 || piece_board[row][col] == nullptr ||
         (selected_piece != nullptr && row == selected_piece->get_row() && col == selected_piece->get_col()))
         { return; } // Cant be out of bounds, nullptr, or same piece //
-    if ((isWhite == white_turn) || !isOnline){ // Player cant move unless their turn online or singleplayer //
+    if ((isWhite == white_turn) || isOnline){ // Player cant move unless their turn online or singleplayer //
         bool is_white_piece = piece_board[row][col]->get_color();
         if (is_white_piece == white_turn){
             select_piece(row, col); // Select piece thats their own //
@@ -365,7 +365,7 @@ board_state::~board_state(){
 //----------------------------------- Server Validation -----------------------------------------//
 
 int board_state::validate_move(QString move){
-    if (move.length() < 4){ return 1; }
+    if (move.size() < 4){ return 5; }
     int from_row = move.at(0).digitValue();
     int from_col = move.at(1).digitValue();
     int to_row   = move.at(2).digitValue();

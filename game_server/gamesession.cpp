@@ -14,38 +14,40 @@ bool GameSession::validate_players(){
 }
 void GameSession::validate_move(bool white_move, QString move){
     QString ErrorMessage = "";
+    if (move.size() != 4){ sendErrorMessage("❌Received empty move"); }
+    if (!validate_players() || !server_game){ return; }
 
-    if (!validate_players()){ return; }
-    else {
-        QString w_move = move;
-        if (!white_move){ w_move = flip_move(move); }
-        if (!server_game){ return; }
-        int returnCode = server_game->validate_move(w_move);
+    QString w_move = move;
+    if (!white_move){ w_move = flip_move(move); }
+    int returnCode = server_game->validate_move(w_move);
 
-        if (returnCode == 0){
-            server_game->server_move(w_move);
-            player1->sendMove_S(w_move);
-            player2->sendMove_S(flip_move(w_move));
-            check_checkmated();
-            return;
-        }
-        else if (returnCode == 1){
-            ErrorMessage = "❌Received move out of bounds | " + move;
-        }
-        else if (returnCode == 2){
-            ErrorMessage = "❌Received move no piece found: " + w_move;
-        }
-        else if (returnCode == 3){
-            ErrorMessage = "❌Received move not players turn";
-        }
-        else if (returnCode == 4){
-            ErrorMessage = "❌Received move not legal";
-        }
-        else if (returnCode == -1){
-            ErrorMessage = "❌Unknown move error: Could not accept move";
-        }
-        sendErrorMessage(ErrorMessage);
+    if (returnCode == 0){
+        server_game->server_move(w_move);
+        player1->sendMove_S(w_move);
+        player2->sendMove_S(flip_move(w_move));
+        check_checkmated();
+        return;
     }
+    else if (returnCode == 1){
+        ErrorMessage = "❌Received move out of bounds: " + w_move;
+    }
+    else if (returnCode == 2){
+        ErrorMessage = "❌Received move no piece found: " + w_move;
+    }
+    else if (returnCode == 3){
+        ErrorMessage = "❌Received move not players turn";
+    }
+    else if (returnCode == 4){
+        ErrorMessage = "❌Received move not legal";
+    }
+    else if (returnCode == 5){
+        ErrorMessage = "❌Received move missing coordinate: " + w_move;
+    }
+    else if (returnCode == -1){
+        ErrorMessage = "❌Unknown move error: Could not accept move";
+    }
+    sendErrorMessage(ErrorMessage);
+
 }
 void GameSession::check_checkmated(){
     if (!validate_players()){ return; }
@@ -64,7 +66,7 @@ QString GameSession::flip_move(QString move){
 
     int flipInt = (7-from_row) * 1000 + (7-from_col) * 100 + (7-to_row) * 10 + (7-to_col);
     move = QString::number(flipInt);
-    if (flipInt < 1000){ move = "0" + move; } // no 0 in front of int //
+    while (move.size() < 4){ move = "0" + move; } // no 0 in front of int //
     return move;
 }
 
