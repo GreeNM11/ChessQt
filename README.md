@@ -92,8 +92,10 @@ https://github.com/user-attachments/assets/4e905056-4a32-44b5-be45-f4a4ffac3f7a
 ---
 
 ### Download & Install
-- No support for download yet, it is still in development.
-- Will deploy it when finished
+- Deployed onto itch.io | https://greenm11.itch.io/chessqt | for client run
+- Server must be on to host games but singleplayer is fine
+
+Warning: still in development. Very not polished and contains bugs.
 
 
 ---
