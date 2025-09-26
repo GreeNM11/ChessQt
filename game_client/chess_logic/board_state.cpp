@@ -140,8 +140,14 @@ void board_state::send_move_request(int p_row, int p_col, int new_row, int new_c
     else if (isWhite == white_turn && isOnline){ // Must validate move with server to move //
         int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
         QString move = QString::number(moveInt);
-        if (moveInt < 1000){ move = "0" + move; } // no 0 in front of int //
-        emit send_player_move(move, isWhite);
+        while (move.size() < 4){ move = "0" + move; } // no 0 in front of int //
+
+        if (move.size() != 4){
+            emit clientMessage("❌Trying to send invalid move");
+        }
+        else{
+            emit send_player_move(move, isWhite);
+        }
     }
 }
 void board_state::receive_move(QString move){
