@@ -46,7 +46,7 @@ void board_state::click_piece(int row, int col){
     if (row > 7 || row < 0 || col > 7 || col < 0 || piece_board[row][col] == nullptr ||
         (selected_piece != nullptr && row == selected_piece->get_row() && col == selected_piece->get_col()))
         { return; } // Cant be out of bounds, nullptr, or same piece //
-    if ((isWhite == white_turn) || isOnline){ // Player cant move unless their turn online or singleplayer //
+    if ((isWhite == white_turn) || !isOnline){ // Player cant move unless their turn online or singleplayer //
         bool is_white_piece = piece_board[row][col]->get_color();
         if (is_white_piece == white_turn){
             select_piece(row, col); // Select piece thats their own //

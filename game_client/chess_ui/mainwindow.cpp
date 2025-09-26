@@ -67,12 +67,8 @@ void MainWindow::ClientMessage(const QString msg){
     ui->ServerLog->setTextCursor(cursor);
 }
 
-void MainWindow::onClientConnected_C() {
-    ClientMessage("✅Server Status: Connected");
-}
-void MainWindow::onClientDisconnected_C() {
-    ClientMessage("❌Server Status: Disconnected");
-}
+void MainWindow::onClientConnected_C() { ClientMessage("✅Server Status: Connected"); }
+void MainWindow::onClientDisconnected_C() { ClientMessage("❌Server Status: Disconnected"); }
 
 void MainWindow::onRegisterUser_C(QString code){
     if (code.at(0) == "✅"){
@@ -188,6 +184,7 @@ MainWindow::MainWindow(bool isServer, bool isRemote, QWidget *parent)
 
         // Client-Server Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected_C);
+        connect(client.get(), &Client::disconnectedToServer, this, &MainWindow::onClientDisconnected_C);
         connect(client.get(), &Client::clientMessage, this, &MainWindow::ClientMessage);
 
         connect(client.get(), &Client::registerUser_S, this, &MainWindow::onRegisterUser_C);
