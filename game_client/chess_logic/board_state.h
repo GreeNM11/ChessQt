@@ -19,6 +19,7 @@ public:
 
     // Server Received //
     void receive_move(QString moveCode);
+    void receive_moveList(QString moveList);
 
     // Server Validation //
     int validate_move(QString move); // returns an error number //

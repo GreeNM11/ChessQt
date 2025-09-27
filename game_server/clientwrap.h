@@ -18,11 +18,11 @@ public:
     void sendMessage(const QString& message); // sends message to server ui //
 
     // _S Sends information back through socket to local //
-    void registerUser_S(QString code);
-    void loginUser_S(QString code);
+    void registerUser_S(QString code, QString user);
+    void loginUser_S(QString code, QString user);
 
     void createGameSession_S(QString gameID);
-    void joinGameSession_S(bool gameFound, bool isWhite);
+    void joinGameSession_S(bool gameFound, bool isWhite, int code, QString moveList);
 
     void sendMove_S(QString move);
     void sendCheckmated_S(QString isWhite);
@@ -30,9 +30,12 @@ public:
     void sendPlayerMessage_S(QString playerName, QString msg);
     void sendErrorMessage_S(QString msg);
 
+    QString getUser(){ return clientUser; }
+
 private:
     QTcpSocket* socket;
     QString clientId;
+    QString clientUser;
 
     void receiveMessage(const QString& message);
 private slots:

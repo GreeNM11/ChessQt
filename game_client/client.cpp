@@ -31,8 +31,8 @@ void Client::receiveMessage(const QString& msg) {
     if (parts[0] == "CREATE_GAME_S" && parts.size() >= 2) {
         emit createGameSession_S(parts[1]);
     }
-    else if (parts[0] == "JOIN_GAME_S" && parts.size() >= 3) {
-        emit joinGameSession_S(parts[1] == "1", parts[2] == "1");
+    else if (parts[0] == "JOIN_GAME_S" && parts.size() >= 5) {
+        emit joinGameSession_S(parts[1] == "1", parts[2] == "1", parts[3].toInt(), parts[4]);
     }
     else if (parts[0] == "SEND_PLAYER_MOVE_S" && parts.size() >= 2) {
         emit sendMove_S(parts[1]);

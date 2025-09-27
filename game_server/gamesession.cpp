@@ -1,5 +1,30 @@
 #include "gamesession.h"
 #include <QDebug>
+
+//-----------------------------// Player Management //---------------------------------//
+
+void GameSession::player_join(ClientWrap* player){
+    if (!player2){
+        player2 = player;
+        player->joinGameSession_S(true, !isWhite, 0, ""); // gameFound | p2 isWhite parameters //
+    }
+    else if (player1->getUser() == player->getUser()){
+        if (!isWhite){ player->joinGameSession_S(true, isWhite, 1, flip_moveList(moveList)); }
+        else{ player->joinGameSession_S(true, isWhite, 1, moveList); }
+        player1 = player;
+    }
+    else if (player2->getUser() == player->getUser()){
+        if (isWhite){ player->joinGameSession_S(true, !isWhite, 1, flip_moveList(moveList)); }
+        else{ player->joinGameSession_S(true, !isWhite, 1, moveList); }
+        player2 = player;
+    }
+    else{
+        player->joinGameSession_S(false, false, 1, "");
+    }
+}
+
+//-----------------------------// Game Validation //---------------------------------//
+
 bool GameSession::validate_players(){
     if (!player1 && !player2){ return false; }
     if(!player1){
@@ -25,26 +50,27 @@ void GameSession::validate_move(bool white_move, QString move){
         server_game->server_move(w_move);
         player1->sendMove_S(w_move);
         player2->sendMove_S(flip_move(w_move));
+        moveList += w_move;
         check_checkmated();
         return;
     }
     else if (returnCode == 1){
-        ErrorMessage = "❌Received move out of bounds: " + w_move;
+        ErrorMessage = "Received move: out of bounds: " + w_move;
     }
     else if (returnCode == 2){
-        ErrorMessage = "❌Received move no piece found: " + w_move;
+        ErrorMessage = "Received move: no piece found: " + w_move;
     }
     else if (returnCode == 3){
-        ErrorMessage = "❌Received move not players turn";
+        ErrorMessage = "Received move: not players turn";
     }
     else if (returnCode == 4){
-        ErrorMessage = "❌Received move not legal";
+        ErrorMessage = "Received move: not legal";
     }
     else if (returnCode == 5){
-        ErrorMessage = "❌Received move missing coordinate: " + w_move;
+        ErrorMessage = "Received move: missing coordinate: " + w_move;
     }
     else if (returnCode == -1){
-        ErrorMessage = "❌Unknown move error: Could not accept move";
+        ErrorMessage = "Received move: Unknown Error";
     }
     sendErrorMessage(ErrorMessage);
 
@@ -69,6 +95,18 @@ QString GameSession::flip_move(QString move){
     while (move.size() < 4){ move = "0" + move; } // no 0 in front of int //
     return move;
 }
+QString GameSession::flip_moveList(QString moveList){
+    QString flippedList = "";
+
+    while (moveList.size() >= 4){
+        flippedList += flip_move(moveList.left(4));
+        moveList = moveList. mid(4);
+    }
+
+    return flippedList;
+}
+
+//-----------------------------// Player Communication //---------------------------------//
 
 void GameSession::sendPlayerMessage(QString playerName, QString msg){
     // sends to both players so message only shows if received by server //
@@ -80,7 +118,8 @@ void GameSession::sendErrorMessage(QString msg){
     if (player1 != nullptr){ player1->sendErrorMessage_S(msg); }
     if (player2 != nullptr){ player2->sendErrorMessage_S(msg); }
 }
-//---------------------------------// Class Defaults //---------------------------------//
+
+//-----------------------------// Class Defaults //---------------------------------//
 
 GameSession::GameSession(QString gameID, ClientWrap* player1, bool isWhite)
     : gameID(gameID), player1(player1), isWhite(isWhite) {

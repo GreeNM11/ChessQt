@@ -63,18 +63,21 @@ void ClientWrap::sendMessage(const QString& message) {
     }
 }
 
-void ClientWrap::registerUser_S(QString code){
+void ClientWrap::registerUser_S(QString code, QString user){
     sendMessage("REGISTER_USER_S|" + code + "\n");
+    clientUser = user;
 }
-void ClientWrap::loginUser_S(QString code){
+void ClientWrap::loginUser_S(QString code, QString user){
     sendMessage("LOGIN_USER_S|" + code + "\n");
+    clientUser = user;
 }
 
 void ClientWrap::createGameSession_S(QString gameID){
     sendMessage("CREATE_GAME_S|" + gameID + "\n");
 }
-void ClientWrap::joinGameSession_S(bool gameFound, bool isWhite){
-    sendMessage("JOIN_GAME_S|" + QString(gameFound ? "1" : "0") + "|" + QString(isWhite ? "1" : "0") + "\n");
+void ClientWrap::joinGameSession_S(bool gameFound, bool isWhite, int code, QString moveList){
+    sendMessage("JOIN_GAME_S|" + QString(gameFound ? "1" : "0") + "|" + QString(isWhite ? "1" : "0") + "|" +
+    QString::number(code) + "|" + moveList + "\n");
 }
 
 void ClientWrap::sendMove_S(QString move){

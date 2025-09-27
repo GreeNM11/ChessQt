@@ -159,6 +159,16 @@ void board_state::receive_move(QString move){
 
     move_piece(from_row, from_col, to_row, to_col);
 }
+void board_state::receive_moveList(QString moveList){
+    bool turn = true;
+    while (moveList.size() > 3){
+        turn = !turn;
+        receive_move(moveList.left(4));
+        moveList = moveList.mid(4);
+    }
+    white_turn = turn;
+}
+
 void board_state::send_checkmate_request(int code){ emit checkmated(code); }
 
 void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){

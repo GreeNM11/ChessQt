@@ -88,18 +88,29 @@ void MainWindow::onCreateGameSession_C(QString ID){
     isOnline = true;
     ClientMessage("Created Game Session. ID: " + gameID);
 }
-void MainWindow::onJoinGameSession_C(bool joined, bool w){
+void MainWindow::onJoinGameSession_C(bool joined, bool w, int code, QString moveList){
     if (joined){
         QString color = w ? "White" : "Black";
         createGamePage(w, true);
         playerName = color;
         isOnline = true;
 
-        client->sendPlayerMessage(gameID, playerName," has joined");
+        if (code == 0){ client->sendPlayerMessage(gameID, playerName," has joined"); }
+        else if (code == 1){
+            client->sendPlayerMessage(gameID, playerName," has rejoined");
+            game->receive_moveList(moveList);
+        }
+
         ClientMessage("You are " + color);
     }
-    else{
-        ClientMessage("❌Invalid Join Code");
+    else if (code == 0){
+        ClientMessage("❌Unable to Join: Invalid Join Code");
+    }
+    else if (code == 1){
+        ClientMessage("❌Unable to Join: Game is Full");
+    }
+    else {
+        ClientMessage("❌Unable to Join: Unknown Error");
     }
 }
 
@@ -134,8 +145,12 @@ void MainWindow::createGamePage(bool w, bool isOnline){
 
     connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this]() {
         QString playerMsg = ui->gameChatEnter->text();
-        ui->gameChatEnter->clear();
-        client->sendPlayerMessage(gameID, playerName, playerMsg);
+        if (playerMsg != "" && canChat){
+            ui->gameChatEnter->clear();
+            client->sendPlayerMessage(gameID, playerName, playerMsg);
+            canChat = false;
+            QTimer::singleShot(3000, this, [this]() { canChat = true; }); // timer for 3 seconds
+        }
     });
     ui->gameChatEnter->setMaxLength(150); // max 150 characters per player message //
 }

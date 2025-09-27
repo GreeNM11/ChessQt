@@ -140,6 +140,7 @@ void chess_game::send_player_move(QString move, bool isWhite){ emit player_move(
 void chess_game::send_checkmated(int code){ emit player_checkmated(code); }
 
 void chess_game::receive_move(QString move){ game_state->receive_move(move); }
+void chess_game::receive_moveList(QString moveList){ game_state->receive_moveList(moveList); }
 
 //----------------------------------- Class Defaults  -----------------------------------------//
 

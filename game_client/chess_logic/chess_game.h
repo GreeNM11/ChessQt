@@ -18,6 +18,7 @@ public:
     ~chess_game();
 
     void receive_move(QString move);
+    void receive_moveList(QString moveList);
 
 private:
     const int pieceWidth = 80;

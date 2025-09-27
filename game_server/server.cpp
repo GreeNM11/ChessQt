@@ -43,10 +43,10 @@ void Server::clientDisconnect(ClientWrap* client){
 }
 
 void Server::registerUser(ClientWrap* client, QString user, QString pass){
-    client->registerUser_S(database->registerUser(user, pass)); // returns message of success or fail //
+    client->registerUser_S(database->registerUser(user, pass), user); // returns message of success or fail //
 }
 void Server::loginUser(ClientWrap* client, QString user, QString pass){
-    client->loginUser_S(database->loginUser(user, pass));
+    client->loginUser_S(database->loginUser(user, pass), user);
 }
 
 // ---------------------- Chess Game Session Functions ---------------------- //
@@ -63,11 +63,10 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
     if (activeSessions.contains(gameID)){
         GameSession* session = activeSessions.value(gameID);
         if (!session){ return; }
-        session->setPlayer2(client);
-        client->joinGameSession_S(true, session->player2_color()); // gameFound | p2 isWhite parameters //
+        session->player_join(client);
     }
     else{
-        client->joinGameSession_S(false, false); // game not found | just false is dont care //
+        client->joinGameSession_S(false, false, 0, ""); // game not found //
     }
 }
 

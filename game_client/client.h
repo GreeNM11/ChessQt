@@ -49,7 +49,7 @@ signals:
     void loginUser_S(QString code);
 
     void createGameSession_S(QString gameID);
-    void joinGameSession_S(bool gameJoined, bool isWhite);
+    void joinGameSession_S(bool gameJoined, bool isWhite, int code, QString moveList);
 
     void sendMove_S(QString move);
     void sendCheckmated_S(int code);

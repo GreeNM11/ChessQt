@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QTimer>
 #include "game_server/server.h"
 
 #include "game_client/client.h"
@@ -27,6 +28,7 @@ private:
 
     QString playerName;
     bool isOnline = false;
+    bool canChat = true;
 
     void createGamePage(bool isWhite, bool isOnline);
 
@@ -45,7 +47,7 @@ private slots:
     void onLoginUser_C(QString code);
 
     void onCreateGameSession_C(QString gameID);
-    void onJoinGameSession_C(bool joined, bool isWhite);
+    void onJoinGameSession_C(bool joined, bool isWhite, int code, QString moveList);
 
     void onReceiveMove_C(QString move);
     void onReceiveCheckmated_C(int code);
