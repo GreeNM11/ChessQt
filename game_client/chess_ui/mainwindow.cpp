@@ -34,7 +34,14 @@ void MainWindow::singleplayerClicked() {
     QString color = isWhite ? "White" : "Black";
     ClientMessage("Offline Game Created. You are: " + color);
 
-    createGamePage(isWhite, false);
+    createGamePage(isWhite, false, false);
+}
+
+void MainWindow::playVsAIClicked() {
+    QString color = isWhite ? "White" : "Black";
+    ClientMessage("AI Game Created. You are: " + color + " vs AI (Black)");
+
+    createGamePage(isWhite, false, true);
 }
 void MainWindow::hostGameClicked() {
     // sends to client < clientWrap < Server to make a game session //
@@ -46,7 +53,7 @@ void MainWindow::hostGameClicked() {
         ClientMessage("Hosting Game.. You are: " + color);
         playerName = color;
 
-        createGamePage(isWhite, true);
+        createGamePage(isWhite, true, false);
     }
 }
 void MainWindow::joinGameClicked() {
@@ -69,6 +76,12 @@ void MainWindow::backMenuClicked(){
     isWhite = true;
     isOnline = false;
     canChat = true;
+    isAIGame = false;
+    
+    // Clean up AI bot
+    if (aiBot) {
+        aiBot.reset();
+    }
 }
 
 ///-------------------------------------- Client Functions  --------------------------------------///
@@ -143,8 +156,9 @@ void MainWindow::onReceiveCheckmated_C(int code){
 }
 
 //-----  Helper Functions ------//
-void MainWindow::createGamePage(bool w, bool isOnline){
+void MainWindow::createGamePage(bool w, bool isOnline, bool isAI){
     isWhite = w;
+    isAIGame = isAI;
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
 
     labelBoard = new QLabel(ui->boardPage);                    // example text
@@ -156,11 +170,36 @@ void MainWindow::createGamePage(bool w, bool isOnline){
     connect(game.get(), &chess_game::player_checkmated, this, &MainWindow::onCheckmated_G);
     connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
 
+    // Initialize AI Bot if this is an AI game
+    if (isAI) {
+        // AI always plays as black (opposite of human player)
+        aiBot = std::make_unique<AIBotController>(!isWhite, this);
+        
+        // Connect AI signals
+        connect(aiBot.get(), &AIBotController::aiMoveReady, this, &MainWindow::onAIMove);
+        connect(aiBot.get(), &AIBotController::aiThinking, this, &MainWindow::onAIThinking);
+        connect(aiBot.get(), &AIBotController::aiMessage, this, &MainWindow::onAIMessage);
+        
+        // Configure AI
+        aiBot->setDifficulty(aiDifficulty);
+        aiBot->setThinkingTime(aiThinkingTime);
+        aiBot->enableAI(true);
+        
+        // Connect to game's board state
+        aiBot->connectToGame(game->getBoardState());
+        
+        ClientMessage("AI Bot initialized. Difficulty: " + QString::number(aiDifficulty));
+    }
+
     connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this]() {
         QString playerMsg = ui->gameChatEnter->text();
         if (playerMsg != "" && canChat){
             ui->gameChatEnter->clear();
-            client->sendPlayerMessage(gameID, playerName, playerMsg);
+            if (isOnline) {
+                client->sendPlayerMessage(gameID, playerName, playerMsg);
+            } else {
+                ClientMessage("You: " + playerMsg);
+            }
             canChat = false;
             QTimer::singleShot(3000, this, [this]() { canChat = true; }); // timer for 3 seconds
         }
@@ -170,9 +209,59 @@ void MainWindow::createGamePage(bool w, bool isOnline){
 
 ///--------------------------- MainWindow Slots from  GameLogic  ---------------------------///
 
-void MainWindow::onPlayerMove_G(const QString move, const bool isWhite){ client->sendMove(gameID, move, isWhite); }
+void MainWindow::onPlayerMove_G(const QString move, const bool isWhite){ 
+    if (isOnline) {
+        client->sendMove(gameID, move, isWhite); 
+    } else if (isAIGame) {
+        // In AI game, trigger AI to make its move after human move
+        ClientMessage("Your move: " + move);
+        if (aiBot) {
+            QTimer::singleShot(500, this, [this]() {
+                aiBot->makeMove();
+            });
+        }
+    }
+}
 void MainWindow::onCheckmated_G(int c){
     if (!isOnline){ onReceiveCheckmated_C(c); }
+}
+
+// AI Bot Slots
+void MainWindow::onAIMove(QString move) {
+    ClientMessage("AI move: " + move);
+    if (game) {
+        // Execute AI move
+        game->receive_move(move);
+    }
+}
+
+void MainWindow::onAIThinking(bool thinking) {
+    if (thinking) {
+        ui->aiStatusLabel->setText("AI: Thinking...");
+        ui->aiStatusLabel->setStyleSheet("QLabel { background-color: #ffeb3b; border: 1px solid #f57f17; border-radius: 5px; padding: 5px; }");
+    } else {
+        ui->aiStatusLabel->setText("AI: Ready");
+        ui->aiStatusLabel->setStyleSheet("QLabel { background-color: #4caf50; border: 1px solid #2e7d32; border-radius: 5px; padding: 5px; }");
+    }
+}
+
+void MainWindow::onAIMessage(QString message) {
+    ClientMessage("AI: " + message);
+}
+
+void MainWindow::onAIDifficultyChanged(int value) {
+    aiDifficulty = value;
+    ui->aiDifficultyValue->setText(QString::number(value));
+    if (aiBot) {
+        aiBot->setDifficulty(value);
+    }
+}
+
+void MainWindow::onAIThinkingTimeChanged(int value) {
+    aiThinkingTime = value;
+    if (aiBot) {
+        aiBot->setThinkingTime(value);
+    }
 }
 
 void MainWindow::onPlayerMessage_C(QString playerName, QString msg){ ClientMessage(playerName + ": " + msg); }
@@ -208,7 +297,12 @@ MainWindow::MainWindow(bool isServer, bool isRemote, QWidget *parent)
         connect(ui->SingleplayerButton, &QPushButton::clicked, this, &MainWindow::singleplayerClicked);
         connect(ui->HostGameButton, &QPushButton::clicked, this, &MainWindow::hostGameClicked);
         connect(ui->JoinGameButton, &QPushButton::clicked, this, &MainWindow::joinGameClicked);
+        connect(ui->PlayVsAIButton, &QPushButton::clicked, this, &MainWindow::playVsAIClicked);
         connect(ui->backMenuButton, &QPushButton::clicked, this, &MainWindow::backMenuClicked);
+        
+        // AI Settings connections
+        connect(ui->aiDifficultySlider, &QSlider::valueChanged, this, &MainWindow::onAIDifficultyChanged);
+        connect(ui->aiThinkingTimeSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onAIThinkingTimeChanged);
 
         // Client-Server Network Setup //
         connect(client.get(), &Client::connectedToServer, this, &MainWindow::onClientConnected_C);

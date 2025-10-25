@@ -179,6 +179,115 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <string>Join Game</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="PlayVsAIButton">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>310</y>
+        <width>160</width>
+        <height>40</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Play vs AI</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="aiSettingsWidget">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>160</y>
+        <width>200</width>
+        <height>120</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <widget class="QLabel" name="aiDifficultyLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>80</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>AI Difficulty:</string>
+       </property>
+      </widget>
+      <widget class="QSlider" name="aiDifficultySlider">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>35</y>
+         <width>180</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>5</number>
+       </property>
+       <property name="value">
+        <number>3</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="aiDifficultyValue">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>10</y>
+         <width>30</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>3</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="aiThinkingTimeLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>65</y>
+         <width>100</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Thinking Time:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="aiThinkingTimeSpinBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>85</y>
+         <width>80</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>500</number>
+       </property>
+       <property name="maximum">
+        <number>10000</number>
+       </property>
+       <property name="value">
+        <number>2000</number>
+       </property>
+       <property name="suffix">
+        <string> ms</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
     <widget class="QWidget" name="joinGamePage">
      <widget class="QTextEdit" name="joinGameText">
@@ -224,7 +333,47 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="boardPage"/>
+    <widget class="QWidget" name="boardPage">
+     <widget class="QLabel" name="aiStatusLabel">
+      <property name="geometry">
+       <rect>
+        <x>650</x>
+        <y>10</y>
+        <width>140</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel { background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; padding: 5px; }</string>
+      </property>
+      <property name="text">
+       <string>AI: Ready</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="aiDifficultyButton">
+      <property name="geometry">
+       <rect>
+        <x>650</x>
+        <y>50</y>
+        <width>140</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>AI Settings</string>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="loginPage">
      <widget class="QLineEdit" name="passwordEnter">
       <property name="geometry">

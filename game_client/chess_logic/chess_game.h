@@ -19,6 +19,9 @@ public:
 
     void receive_move(QString move);
     void receive_moveList(QString moveList);
+    
+    // AI Integration
+    board_state* getBoardState() { return game_state.get(); }
 
 private:
     const int pieceWidth = 80;

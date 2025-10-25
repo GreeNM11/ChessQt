@@ -6,6 +6,7 @@
 
 #include "game_client/client.h"
 #include "game_client/chess_logic/chess_game.h"
+#include "NeroMate---Chessbot/ai_bot_controller.h"
 
 class MainWindow : public QMainWindow{
     Q_OBJECT
@@ -29,8 +30,14 @@ private:
     QString playerName;
     bool isOnline = false;
     bool canChat = true;
+    
+    // AI Bot Integration
+    std::unique_ptr<AIBotController> aiBot;
+    bool isAIGame = false;
+    int aiDifficulty = 3;
+    int aiThinkingTime = 2000;
 
-    void createGamePage(bool isWhite, bool isOnline);
+    void createGamePage(bool isWhite, bool isOnline, bool isAI = false);
 
 private slots:
     void ClientMessage(const QString msg);
@@ -65,7 +72,15 @@ private slots:
     void singleplayerClicked();
     void hostGameClicked();
     void joinGameClicked();
+    void playVsAIClicked();
     void backMenuClicked();
+    
+    // AI Bot Slots
+    void onAIMove(QString move);
+    void onAIThinking(bool thinking);
+    void onAIMessage(QString message);
+    void onAIDifficultyChanged(int value);
+    void onAIThinkingTimeChanged(int value);
 
 };
 

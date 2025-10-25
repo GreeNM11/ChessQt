@@ -53,6 +53,12 @@ set(PROJECT_SOURCES
     game_server/database_chess.cpp
     game_server/database_chess.h
 
+    # AI Bot Integration
+    NeroMate---Chessbot/chess_ai.cpp
+    NeroMate---Chessbot/chess_ai.h
+    NeroMate---Chessbot/ai_bot_controller.cpp
+    NeroMate---Chessbot/ai_bot_controller.h
+
     resources.qrc
 )
 
