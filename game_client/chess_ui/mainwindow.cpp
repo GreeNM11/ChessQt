@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "QDebug"
+#include <QTimer>
 
 ///-------------------------------------- Button Actions  --------------------------------------///
 void MainWindow::registerButtonClicked(){
@@ -38,10 +39,12 @@ void MainWindow::singleplayerClicked() {
 }
 
 void MainWindow::playVsAIClicked() {
-    QString color = isWhite ? "White" : "Black";
-    ClientMessage("AI Game Created. You are: " + color + " vs AI (Black)");
+    // Always make human white and AI black for consistency
+    isWhite = true;
+    ClientMessage("AI Game Created. You are White vs AI (Black)");
+    ClientMessage("You move first. AI will respond after your move.");
 
-    createGamePage(isWhite, false, true);
+    createGamePage(true, false, true); // Human is white, AI is black
 }
 void MainWindow::hostGameClicked() {
     // sends to client < clientWrap < Server to make a game session //
@@ -69,19 +72,62 @@ void MainWindow::joinGameClicked() {
     });
 }
 void MainWindow::backMenuClicked(){
+    qDebug() << "Back menu clicked - starting cleanup";
+    
+    // Clean up AI bot first to prevent crashes
+    if (aiBot) {
+        qDebug() << "Cleaning up AI bot";
+        try {
+            // Stop the AI bot properly
+            aiBot->stopGame();
+            
+            // Disconnect all AI bot signals to prevent crashes
+            disconnect(aiBot.get(), nullptr, this, nullptr);
+            
+            // Reset the AI bot
+            aiBot.reset();
+            aiBot = nullptr;
+            qDebug() << "AI bot cleaned up successfully";
+        } catch (...) {
+            qDebug() << "Error cleaning up AI bot";
+            aiBot.reset();
+            aiBot = nullptr;
+        }
+    }
+    
+    // Clean up game first (this might be using labelBoard)
+    if (game) {
+        qDebug() << "Cleaning up game";
+        try {
+            // Disconnect all game signals first
+            disconnect(game.get(), nullptr, this, nullptr);
+            game.reset();
+            game = nullptr;
+            qDebug() << "Game cleaned up successfully";
+        } catch (...) {
+            qDebug() << "Error cleaning up game";
+            game.reset();
+            game = nullptr;
+        }
+    }
+    
+    // Clean up UI - Don't manually delete labelBoard as it's managed by Qt's parent-child system
+    if (labelBoard) {
+        qDebug() << "Resetting labelBoard pointer (Qt will handle cleanup)";
+        labelBoard = nullptr;
+        qDebug() << "labelBoard pointer reset successfully";
+    }
+    
+    // Reset state
+    qDebug() << "Resetting state and switching to menu";
     ui->mainStack->setCurrentWidget(ui->menuPage);
-    game = nullptr;
-    delete labelBoard;
     gameID = "";
     isWhite = true;
     isOnline = false;
     canChat = true;
     isAIGame = false;
     
-    // Clean up AI bot
-    if (aiBot) {
-        aiBot.reset();
-    }
+    qDebug() << "Back menu cleanup completed";
 }
 
 ///-------------------------------------- Client Functions  --------------------------------------///
@@ -165,33 +211,32 @@ void MainWindow::createGamePage(bool w, bool isOnline, bool isAI){
     labelBoard->setGeometry(0, 0, 640, 640);
     labelBoard->show();
 
-    game = std::make_unique<chess_game>(labelBoard, isWhite, 10, 1, isOnline); // creates game + loads board //
+    game = std::make_unique<chess_game>(labelBoard, isWhite, 10, 1, isOnline, isAI); // creates game + loads board //
     connect(game.get(), &chess_game::player_move, this, &MainWindow::onPlayerMove_G);
     connect(game.get(), &chess_game::player_checkmated, this, &MainWindow::onCheckmated_G);
     connect(game.get(), &chess_game::clientMessage, this, &MainWindow::ClientMessage);
 
     // Initialize AI Bot if this is an AI game
     if (isAI) {
-        // AI always plays as black (opposite of human player)
-        aiBot = std::make_unique<AIBotController>(!isWhite, this);
+        // Create simple AI bot
+        aiBot = std::make_unique<SimpleAIBot>(this);
         
         // Connect AI signals
-        connect(aiBot.get(), &AIBotController::aiMoveReady, this, &MainWindow::onAIMove);
-        connect(aiBot.get(), &AIBotController::aiThinking, this, &MainWindow::onAIThinking);
-        connect(aiBot.get(), &AIBotController::aiMessage, this, &MainWindow::onAIMessage);
+        connect(aiBot.get(), &SimpleAIBot::aiMoveReady, this, &MainWindow::onAIMove);
+        connect(aiBot.get(), &SimpleAIBot::aiThinking, this, &MainWindow::onAIThinking);
+        connect(aiBot.get(), &SimpleAIBot::aiMessage, this, &MainWindow::onAIMessage);
         
         // Configure AI
         aiBot->setDifficulty(aiDifficulty);
         aiBot->setThinkingTime(aiThinkingTime);
         aiBot->enableAI(true);
-        
-        // Connect to game's board state
-        aiBot->connectToGame(game->getBoardState());
+        aiBot->startGame();
         
         ClientMessage("AI Bot initialized. Difficulty: " + QString::number(aiDifficulty));
+        qDebug() << "AI Bot created and configured - Difficulty:" << aiDifficulty << "Thinking time:" << aiThinkingTime;
     }
 
-    connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this]() {
+    connect(ui->gameChatEnter, &QLineEdit::returnPressed, this, [this, isOnline]() {
         QString playerMsg = ui->gameChatEnter->text();
         if (playerMsg != "" && canChat){
             ui->gameChatEnter->clear();
@@ -210,17 +255,42 @@ void MainWindow::createGamePage(bool w, bool isOnline, bool isAI){
 ///--------------------------- MainWindow Slots from  GameLogic  ---------------------------///
 
 void MainWindow::onPlayerMove_G(const QString move, const bool isWhite){ 
+    qDebug() << "=== onPlayerMove_G called ===";
+    qDebug() << "Move:" << move << "isWhite:" << isWhite << "isAIGame:" << isAIGame;
+    qDebug() << "isOnline:" << isOnline << "aiBot available:" << (aiBot != nullptr);
+    
     if (isOnline) {
+        qDebug() << "Online game - sending move to server";
         client->sendMove(gameID, move, isWhite); 
     } else if (isAIGame) {
-        // In AI game, trigger AI to make its move after human move
-        ClientMessage("Your move: " + move);
-        if (aiBot) {
-            QTimer::singleShot(500, this, [this]() {
-                aiBot->makeMove();
-            });
+        qDebug() << "AI game detected";
+        // In AI game, human is white, AI is black
+        if (isWhite) {
+            // Human (white) made a move, now it's AI's turn
+            ClientMessage("Your move: " + move);
+            qDebug() << "Human (white) moved, triggering AI (black)";
+            
+            if (aiBot) {
+                qDebug() << "Calling AI bot onHumanMove with move:" << move;
+                try {
+                    aiBot->onHumanMove(move);
+                    qDebug() << "AI bot onHumanMove called successfully";
+                } catch (...) {
+                    qDebug() << "Error calling AI bot onHumanMove";
+                    ClientMessage("AI bot error occurred");
+                }
+            } else {
+                qDebug() << "ERROR: AI bot not available!";
+                ClientMessage("ERROR: AI bot not available!");
+            }
+        } else {
+            // This shouldn't happen in AI game since human is always white
+            qDebug() << "Unexpected: AI game but isWhite is false";
         }
+    } else {
+        qDebug() << "Offline game (not AI)";
     }
+    qDebug() << "=== onPlayerMove_G completed ===";
 }
 void MainWindow::onCheckmated_G(int c){
     if (!isOnline){ onReceiveCheckmated_C(c); }
@@ -228,19 +298,29 @@ void MainWindow::onCheckmated_G(int c){
 
 // AI Bot Slots
 void MainWindow::onAIMove(QString move) {
-    ClientMessage("AI move: " + move);
-    if (game) {
-        // Execute AI move
-        game->receive_move(move);
+    qDebug() << "Received AI (black) move:" << move << "Format: 4-digit (row/col, row/col)";
+    try {
+        ClientMessage("AI (Black) move: " + move);
+        if (game) {
+            qDebug() << "Executing AI move through game->receive_move()";
+            // Execute AI move through the game as black player
+            game->receive_move(move);
+            qDebug() << "AI move executed successfully";
+        } else {
+            qDebug() << "Game object is null, cannot execute AI move";
+        }
+    } catch (...) {
+        qDebug() << "Error handling AI (black) move";
+        ClientMessage("Error executing AI (black) move");
     }
 }
 
 void MainWindow::onAIThinking(bool thinking) {
     if (thinking) {
-        ui->aiStatusLabel->setText("AI: Thinking...");
+        ui->aiStatusLabel->setText("AI (Black): Thinking...");
         ui->aiStatusLabel->setStyleSheet("QLabel { background-color: #ffeb3b; border: 1px solid #f57f17; border-radius: 5px; padding: 5px; }");
     } else {
-        ui->aiStatusLabel->setText("AI: Ready");
+        ui->aiStatusLabel->setText("AI (Black): Ready");
         ui->aiStatusLabel->setStyleSheet("QLabel { background-color: #4caf50; border: 1px solid #2e7d32; border-radius: 5px; padding: 5px; }");
     }
 }

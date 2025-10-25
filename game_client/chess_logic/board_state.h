@@ -9,7 +9,7 @@ class board_state : public QObject
 {
     Q_OBJECT
 public:
-    board_state(bool isWhite, bool isOnline);
+    board_state(bool isWhite, bool isOnline, bool isAIGame = false);
     ~board_state();
 
     void setup_board();
@@ -32,6 +32,7 @@ private:
     bool white_turn;
     bool isOnline;
     bool isServer;
+    bool isAIGame;
 
     QString board[8][8] = { // String Starting Chess Board //
         { "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR" },

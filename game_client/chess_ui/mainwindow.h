@@ -6,7 +6,7 @@
 
 #include "game_client/client.h"
 #include "game_client/chess_logic/chess_game.h"
-#include "NeroMate---Chessbot/ai_bot_controller.h"
+#include "NeroMate---Chessbot/simple_ai_bot.h"
 
 class MainWindow : public QMainWindow{
     Q_OBJECT
@@ -32,7 +32,7 @@ private:
     bool canChat = true;
     
     // AI Bot Integration
-    std::unique_ptr<AIBotController> aiBot;
+    std::unique_ptr<SimpleAIBot> aiBot;
     bool isAIGame = false;
     int aiDifficulty = 3;
     int aiThinkingTime = 2000;

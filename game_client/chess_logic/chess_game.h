@@ -14,7 +14,7 @@ namespace Ui {class ChessQt;}
 class chess_game : public QObject{
     Q_OBJECT
 public:
-    chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, bool isOnline, QObject* parent = nullptr);
+    chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, bool isOnline, bool isAIGame = false, QObject* parent = nullptr);
     ~chess_game();
 
     void receive_move(QString move);
@@ -31,6 +31,7 @@ private:
     // Player Variables //
     bool isOnline;
     bool isWhite;
+    bool isAIGame;
     int time;
     int increment;
 

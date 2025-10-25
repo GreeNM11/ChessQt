@@ -115,7 +115,7 @@ void chess_game::setup_board(){
         }
     }
     // Creates the game logic handler //
-    game_state = std::make_unique<board_state>(isWhite, isOnline);
+    game_state = std::make_unique<board_state>(isWhite, isOnline, isAIGame);
 
     connect(game_state.get(), &board_state::make_piece_label, this, &chess_game::make_piece_label);
     connect(game_state.get(), &board_state::move_piece_label, this, &chess_game::move_piece_label);
@@ -144,8 +144,8 @@ void chess_game::receive_moveList(QString moveList){ game_state->receive_moveLis
 
 //----------------------------------- Class Defaults  -----------------------------------------//
 
-chess_game::chess_game(QLabel* boardLabel, bool isWhite, int time = 0, int increment = 0, bool isOnline = false, QObject* parent)
-    : boardLabel(boardLabel), isWhite(isWhite), time(time), increment(increment), isOnline(isOnline), QObject(parent){
+chess_game::chess_game(QLabel* boardLabel, bool isWhite, int time, int increment, bool isOnline, bool isAIGame, QObject* parent)
+    : boardLabel(boardLabel), isWhite(isWhite), time(time), increment(increment), isOnline(isOnline), isAIGame(isAIGame), QObject(parent){
     setup_board(); // sets up starting board position //
 }
 

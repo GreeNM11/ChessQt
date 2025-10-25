@@ -10,6 +10,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Fix for MSVC C++17 support
+if(MSVC)
+    add_compile_options(/Zc:__cplusplus)
+    add_compile_options(/permissive-)
+endif()
+
 # Include source directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -54,10 +60,8 @@ set(PROJECT_SOURCES
     game_server/database_chess.h
 
     # AI Bot Integration
-    NeroMate---Chessbot/chess_ai.cpp
-    NeroMate---Chessbot/chess_ai.h
-    NeroMate---Chessbot/ai_bot_controller.cpp
-    NeroMate---Chessbot/ai_bot_controller.h
+    NeroMate---Chessbot/simple_ai_bot.cpp
+    NeroMate---Chessbot/simple_ai_bot.h
 
     resources.qrc
 )

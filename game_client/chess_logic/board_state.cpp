@@ -46,7 +46,7 @@ void board_state::click_piece(int row, int col){
     if (row > 7 || row < 0 || col > 7 || col < 0 || piece_board[row][col] == nullptr ||
         (selected_piece != nullptr && row == selected_piece->get_row() && col == selected_piece->get_col()))
         { return; } // Cant be out of bounds, nullptr, or same piece //
-    if ((isWhite == white_turn) || !isOnline){ // Player cant move unless their turn online or singleplayer //
+    if ((isWhite == white_turn) || (!isOnline && !isAIGame)){ // Player cant move unless their turn online or singleplayer (not AI game) //
         bool is_white_piece = piece_board[row][col]->get_color();
         if (is_white_piece == white_turn){
             select_piece(row, col); // Select piece thats their own //
@@ -136,6 +136,17 @@ void board_state::send_move_request(int p_row, int p_col, int new_row, int new_c
     // Emits string of 4 numbers for piece move to server //
     if (!isOnline) {
         move_piece(p_row, p_col, new_row, new_col);
+        
+        // For AI games, emit the player_move signal so MainWindow can trigger AI
+        if (isAIGame) {
+            int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
+            QString move = QString::number(moveInt);
+            while (move.size() < 4){ move = "0" + move; } // no 0 in front of int //
+            
+            if (move.size() == 4) {
+                emit send_player_move(move, isWhite);
+            }
+        }
     }
     else if (isWhite == white_turn && isOnline){ // Must validate move with server to move //
         int moveInt = p_row * 1000 + p_col * 100 + new_row * 10 + new_col;
@@ -369,7 +380,7 @@ void board_state::setup_board(){
 
 //----------------------------------- Class Defaults -----------------------------------------//
 
-board_state::board_state(bool isWhite, bool isOnline) : isWhite(isWhite), isOnline(isOnline) {}
+board_state::board_state(bool isWhite, bool isOnline, bool isAIGame) : isWhite(isWhite), isOnline(isOnline), isAIGame(isAIGame) {}
 board_state::~board_state(){
     for (int row = 0; row < 8; ++row) {
         // Deletes all piece objects //
