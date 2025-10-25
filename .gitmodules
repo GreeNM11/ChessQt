@@ -1,3 +1,6 @@
 [submodule "ai"]
 	path = ai
 	url = https://github.com/GreeNM11/NeroMate---Chessbot.git
+[submodule "NeroMate---Chessbot"]
+	path = NeroMate---Chessbot
+	url = https://github.com/GreeNM11/NeroMate---Chessbot.git
