@@ -182,6 +182,9 @@ void board_state::move_piece(int p_row, int p_col, int new_row, int new_col){
 
     // Updates object board and string board //
     piece_board[new_row][new_col] = piece_board[p_row][p_col];
+
+    if (piece_board[new_row][new_col]->get_piece_type() == ""){ emit clientMessage("No piece got moved"); return; }
+
     piece_board[p_row][p_col] = nullptr;
 
     piece_board[new_row][new_col]->set_rowcol(new_row, new_col);

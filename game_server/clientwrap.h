@@ -12,23 +12,25 @@ class ClientWrap : public QObject {
 public:
     explicit ClientWrap(QTcpSocket* socket, QObject* parent = nullptr);
 
-    QString getID() const;
-    QTcpSocket* getSocket() const;
+    QString getID() { return clientId; }
+    QTcpSocket* getSocket() { return socket; }
+    QString getCurrentGameSession() { return currentGameSession; }
+    void setCurrentGameSession(QString gameID) { currentGameSession = gameID; }
 
     void sendMessage(const QString& message); // sends message to server ui //
 
     // _S Sends information back through socket to local //
-    void registerUser_S(QString code, QString user);
-    void loginUser_S(QString code, QString user);
+    void registerUser_S(const QString &code, const QString &user);
+    void loginUser_S(const QString &code, const QString &user);
 
-    void createGameSession_S(QString gameID);
-    void joinGameSession_S(bool gameFound, bool isWhite, int code, QString moveList);
+    void createGameSession_S(const QString &gameID);
+    void joinGameSession_S(bool gameFound, bool isWhite, int code, const QString &moveList);
 
-    void sendMove_S(QString move);
-    void sendCheckmated_S(QString isWhite);
+    void sendMove_S(const QString &move);
+    void sendCheckmated_S(const QString &isWhite);
 
-    void sendPlayerMessage_S(QString playerName, QString msg);
-    void sendErrorMessage_S(QString msg);
+    void sendPlayerMessage_S(const QString &playerName, const QString &msg);
+    void sendErrorMessage_S(const QString &msg);
 
     QString getUser(){ return clientUser; }
 
@@ -36,8 +38,9 @@ private:
     QTcpSocket* socket;
     QString clientId;
     QString clientUser;
+    QString currentGameSession;
 
-    void receiveMessage(const QString& message);
+    void receiveMessage(const QString &message);
 private slots:
 void onReadyRead();
 void onDisconnect();

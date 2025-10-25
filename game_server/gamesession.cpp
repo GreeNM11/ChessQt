@@ -37,7 +37,7 @@ bool GameSession::validate_players(){
     }
     return true;
 }
-void GameSession::validate_move(bool white_move, QString move){
+void GameSession::validate_move(bool white_move, const QString &move){
     QString ErrorMessage = "";
     if (move.size() != 4){ sendErrorMessage("❌Received empty move"); }
     if (!validate_players() || !server_game){ return; }
@@ -84,23 +84,25 @@ void GameSession::check_checkmated(){
     }
 }
 
-QString GameSession::flip_move(QString move){
-    int from_row = move.at(0).digitValue();
-    int from_col = move.at(1).digitValue();
-    int to_row = move.at(2).digitValue();
-    int to_col = move.at(3).digitValue();
+QString GameSession::flip_move(const QString &move){
+    QString m = move;
+    int from_row = m.at(0).digitValue();
+    int from_col = m.at(1).digitValue();
+    int to_row = m.at(2).digitValue();
+    int to_col = m.at(3).digitValue();
 
     int flipInt = (7-from_row) * 1000 + (7-from_col) * 100 + (7-to_row) * 10 + (7-to_col);
-    move = QString::number(flipInt);
-    while (move.size() < 4){ move = "0" + move; } // no 0 in front of int //
-    return move;
+    m = QString::number(flipInt);
+    while (m.size() < 4){ m = "0" + m; } // no 0 in front of int //
+    return m;
 }
-QString GameSession::flip_moveList(QString moveList){
+QString GameSession::flip_moveList(const QString &moveList){
     QString flippedList = "";
+    QString ml = moveList;
 
-    while (moveList.size() >= 4){
-        flippedList += flip_move(moveList.left(4));
-        moveList = moveList. mid(4);
+    while (ml.size() >= 4){
+        flippedList += flip_move(ml.left(4));
+        ml = ml.mid(4);
     }
 
     return flippedList;
@@ -108,12 +110,12 @@ QString GameSession::flip_moveList(QString moveList){
 
 //-----------------------------// Player Communication //---------------------------------//
 
-void GameSession::sendPlayerMessage(QString playerName, QString msg){
+void GameSession::sendPlayerMessage(const QString &playerName, const QString &msg){
     // sends to both players so message only shows if received by server //
     if (player1 != nullptr){ player1->sendPlayerMessage_S(playerName, msg); }
     if (player2 != nullptr){ player2->sendPlayerMessage_S(playerName, msg); }
 }
-void GameSession::sendErrorMessage(QString msg){
+void GameSession::sendErrorMessage(const QString &msg){
     // sends off the error code to each player //
     if (player1 != nullptr){ player1->sendErrorMessage_S(msg); }
     if (player2 != nullptr){ player2->sendErrorMessage_S(msg); }
@@ -121,7 +123,7 @@ void GameSession::sendErrorMessage(QString msg){
 
 //-----------------------------// Class Defaults //---------------------------------//
 
-GameSession::GameSession(QString gameID, ClientWrap* player1, bool isWhite)
+GameSession::GameSession(const QString &gameID, ClientWrap* player1, bool isWhite)
     : gameID(gameID), player1(player1), isWhite(isWhite) {
     server_game = std::make_unique<board_state>(true, false); // Server runs its own version of the game //
     server_game->setup_board();

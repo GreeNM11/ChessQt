@@ -12,6 +12,9 @@ void MainWindow::registerButtonClicked(){
     if(!client->registerUser(user, pass)){
         onErrorMessage_C("Could not connect to register user");
     }
+    else{
+        // load menu page
+    }
 }
 void MainWindow::loginButtonClicked(){
     QString user = ui->usernameEnter->text();
@@ -21,6 +24,9 @@ void MainWindow::loginButtonClicked(){
 
     if (!client->loginUser(user, pass)){
         onErrorMessage_C("Could not connect to login user");
+    }
+    else{
+        // load menu page
     }
 }
 
@@ -47,24 +53,31 @@ void MainWindow::joinGameClicked() {
     ui->mainStack->setCurrentWidget(ui->joinGamePage); // sets ui //
     connect(ui->joinGameEnter, &QLineEdit::returnPressed, this, [this]() {
         gameID = ui->joinGameEnter->text();
-        ui->joinGameEnter->clear();
-        if(!client->joinGameSession(gameID)){
-            onErrorMessage_C("Could not connect to join game");
+        if (gameID != ""){
+            ui->joinGameEnter->clear();
+            if(!client->joinGameSession(gameID)){
+                onErrorMessage_C("Could not connect to join game");
+            }
         }
     });
 }
 void MainWindow::backMenuClicked(){
     ui->mainStack->setCurrentWidget(ui->menuPage);
     game = nullptr;
+    delete labelBoard;
+    gameID = "";
+    isWhite = true;
+    isOnline = false;
+    canChat = true;
 }
 
 ///-------------------------------------- Client Functions  --------------------------------------///
 void MainWindow::ClientMessage(const QString msg){
     ui->boardChat->append(msg);  // adds message and a newline //
 
-    QTextCursor cursor = ui->ServerLog->textCursor(); // scrolls //
+    QTextCursor cursor = ui->boardChat->textCursor(); // scrolls //
     cursor.movePosition(QTextCursor::End);
-    ui->ServerLog->setTextCursor(cursor);
+    ui->boardChat->setTextCursor(cursor);
 }
 
 void MainWindow::onClientConnected_C() { ClientMessage("✅Server Status: Connected"); }
@@ -134,7 +147,7 @@ void MainWindow::createGamePage(bool w, bool isOnline){
     isWhite = w;
     ui->mainStack->setCurrentWidget(ui->boardPage); // sets ui //
 
-    QLabel* labelBoard = new QLabel(ui->boardPage);                    // example text
+    labelBoard = new QLabel(ui->boardPage);                    // example text
     labelBoard->setGeometry(0, 0, 640, 640);
     labelBoard->show();
 

@@ -1,10 +1,10 @@
 #include "game_client/client.h"
 #include <QDebug>
 
-Client::Client(QObject *parent, QString ip, int port) : QObject(parent) {
+Client::Client(QObject *parent, const QString &ip, int port) : QObject(parent) {
     socket = new QTcpSocket(this);
     connect(socket, &QTcpSocket::connected, this, &Client::onConnect);
-    connect(socket, &QTcpSocket::disconnected, this, &Client::onConnect);
+    connect(socket, &QTcpSocket::disconnected, this, &Client::onDisconnect);
     connect(socket, &QTcpSocket::readyRead, this, &Client::onReadyRead);
     qDebug() << ip + " : " + QString::number(port);
     socket->connectToHost(ip, port);
@@ -25,7 +25,7 @@ void Client::onReadyRead() {
     }
 }
 
-void Client::receiveMessage(const QString& msg) {
+void Client::receiveMessage(const QString &msg) {
     //emit clientMessage(msg);
     QStringList parts = msg.split("|");
     if (parts[0] == "CREATE_GAME_S" && parts.size() >= 2) {
@@ -68,25 +68,25 @@ bool Client::sendMessage(const QString &message) {
     return false;
 }
 
-bool Client::registerUser(QString user, QString pass){
+bool Client::registerUser(const QString &user, const QString &pass){
     return (sendMessage("REGISTER_USER|" + user + "|" + pass + "\n"));
 }
-bool Client::loginUser(QString user, QString pass){
+bool Client::loginUser(const QString &user, const QString &pass){
     return sendMessage("LOGIN_USER|" + user + "|" + pass + "\n");
 }
 
 bool Client::createGameSession(bool isWhite){
     return sendMessage("CREATE_GAME|" + QString(isWhite ? "1" : "0") + "\n");
 }
-bool Client::joinGameSession(const QString gameID){
+bool Client::joinGameSession(const QString &gameID){
     return sendMessage("JOIN_GAME|" + gameID + "\n");
 }
-bool Client::sendMove(const QString gameID, const QString move, const bool isWhite){
+bool Client::sendMove(const QString &gameID, const QString &move, const bool isWhite){
     // needs a space before | because it breaks without it //
-    return sendMessage("SEND_MOVE|" + gameID + "|" + QString::number(isWhite) + " |" + move + "\n");
+    return sendMessage("SEND_MOVE|" + gameID + "|" + (isWhite ? QStringLiteral("1") : QStringLiteral("0")) + "|" + move + "\n");
 }
 
-bool Client::sendPlayerMessage(QString gameID, const QString playerName, const QString msg){
+bool Client::sendPlayerMessage(const QString &gameID, const QString &playerName, const QString &msg){
     return sendMessage("SEND_PLAYER_MESSAGE|" + gameID + "|" + playerName + "|" + msg + "\n");
 }
 

@@ -10,21 +10,21 @@ class Client : public QObject {
     Q_OBJECT
 
 public:
-    explicit Client(QObject *parent = nullptr, QString ip = "", int port = 0);
+    explicit Client(QObject *parent = nullptr, const QString &ip = QString(), int port = 0);
 
     // Send Through Socket //
-    bool registerUser(QString user, QString pass);
-    bool loginUser(QString user, QString pass);
+    bool registerUser(const QString &user, const QString &pass);
+    bool loginUser(const QString &user, const QString &pass);
 
     bool createGameSession(bool isWhite);
-    bool joinGameSession(const QString gameIDe);
-    bool sendMove(const QString gameID, const QString move, const bool isWhite);
+    bool joinGameSession(const QString &gameIDe);
+    bool sendMove(const QString &gameID, const QString &move, const bool isWhite);
 
-    bool sendPlayerMessage(const QString gameID, const QString playerName, const QString msg);
+    bool sendPlayerMessage(const QString &gameID, const QString &playerName, const QString &msg);
     void serverStatus();
 
     // Receive Through Socket //
-    void receiveMessage(const QString& msg);
+    void receiveMessage(const QString &msg);
 
 private slots:
     void onReadyRead();

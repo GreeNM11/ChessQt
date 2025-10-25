@@ -38,18 +38,22 @@ void Server::onNewConnection() {
     serverMessage("Client Connected: " + clientInfo);
 }
 void Server::clientDisconnect(ClientWrap* client){
-    activeSessions.remove(client->getID());
     serverMessage("Client " + client->getID() + " Disconnected");
+    delete client;
 }
 
-void Server::registerUser(ClientWrap* client, QString user, QString pass){
+void Server::registerUser(ClientWrap* client, const QString &user, const QString &pass){
     client->registerUser_S(database->registerUser(user, pass), user); // returns message of success or fail //
 }
-void Server::loginUser(ClientWrap* client, QString user, QString pass){
+void Server::loginUser(ClientWrap* client, const QString &user, const QString &pass){
     client->loginUser_S(database->loginUser(user, pass), user);
 }
 
 // ---------------------- Chess Game Session Functions ---------------------- //
+
+void Server::onSessionEmpty(const QString& gameID){
+
+}
 
 void Server::newGameSession(ClientWrap* client, bool isWhite){
     QString gameID = QUuid::createUuid().toString(QUuid::WithoutBraces).left(4); // 4 char game id //
@@ -57,9 +61,10 @@ void Server::newGameSession(ClientWrap* client, bool isWhite){
     GameSession* session = new GameSession(gameID, client, isWhite);
 
     activeSessions.insert(gameID, session); // adds to hash map of game sessions //
+    connect(session, &GameSession::sessionEmpty, this, &Server::onSessionEmpty);
     client->createGameSession_S(gameID); // sends back to local client //
 }
-void Server::joinGameSession(ClientWrap* client, QString gameID){
+void Server::joinGameSession(ClientWrap* client, const QString &gameID){
     if (activeSessions.contains(gameID)){
         GameSession* session = activeSessions.value(gameID);
         if (!session){ return; }
@@ -70,12 +75,12 @@ void Server::joinGameSession(ClientWrap* client, QString gameID){
     }
 }
 
-void Server::moveReceived(QString gameID, bool isWhite, QString move){
+void Server::moveReceived(const QString &gameID, bool isWhite, const QString &move){
     GameSession* session = activeSessions.value(gameID);
     if (!session){ return; }
     session->validate_move(isWhite, move);
 }
-void Server::playerMessageReceived(QString gameID, QString playerName, QString msg){
+void Server::playerMessageReceived(const QString &gameID, const QString &playerName, const QString &msg){
     GameSession* session = activeSessions.value(gameID);
     if (!session){ return; }
     session->sendPlayerMessage(playerName, msg);

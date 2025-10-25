@@ -131,7 +131,7 @@ void King::add_valid_move(int row, int col, const QString board[8][8], std::vect
     }
 }
 std::vector<std::pair<int,int>> King::check_if_valid(int row, int col, const QString board[8][8]){
-    if (row >= 8 || row < 0 || col >= 8 || col < 0 || (board[row][col] != nullptr && board[row][col].at(0) == same && board[row][col] != same + 'K')){
+    if (row >= 8 || row < 0 || col >= 8 || col < 0 || (!board[row][col].isEmpty() && board[row][col].at(0) == same && board[row][col] != same + 'K')){
         return {{-2,-1}};  // cant move outside board or same color piece
     }
     std::vector<std::pair<int,int>> check_pieces;

@@ -22,8 +22,8 @@ private:
     std::unique_ptr<Server> server;
 
     std::unique_ptr<chess_game> game;
+    QLabel* labelBoard;
     QString gameID;
-    QString* opponentID;
     bool isWhite = true;
 
     QString playerName;

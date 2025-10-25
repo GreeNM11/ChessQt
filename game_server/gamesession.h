@@ -8,16 +8,16 @@
 class GameSession : public QObject {
     Q_OBJECT
 public:
-    GameSession(QString gameID, ClientWrap* player1, bool isWhite);
+    GameSession(const QString &gameID, ClientWrap* player1, bool isWhite);
     ~GameSession();
 
     void player_join(ClientWrap* player);
 
     bool validate_players();
-    void validate_move(bool isWhite, QString move);
+    void validate_move(bool isWhite, const QString &move);
 
-    void sendPlayerMessage(QString playerName, QString msg);
-    void sendErrorMessage(QString msg);
+    void sendPlayerMessage(const QString &playerName, const QString &msg);
+    void sendErrorMessage(const QString &msg);
 
     ClientWrap* getPlayer1(){ return player1; }
     ClientWrap* getPlayer2(){ return player2; }
@@ -32,11 +32,11 @@ private:
     QString moveList;
 
     void check_checkmated();
-    QString flip_move(QString move);
-    QString flip_moveList(QString moveList);
+    QString flip_move(const QString &move);
+    QString flip_moveList(const QString &moveList);
 
 signals:
-
+    void sessionEmpty(QString gameID);
 };
 
 #endif // GAMESESSION_H
